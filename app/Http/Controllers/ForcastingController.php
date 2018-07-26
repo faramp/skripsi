@@ -40,6 +40,7 @@ class ForcastingController extends Controller
         $testing = $total - $training;
         $data_training = array();
         $data_testing = array();
+        $metode = $request->input('metode');
 
         for($i=0; $i<=$training-1;$i++){
             $data_training[$i] = $search[$i]->qty;
@@ -60,31 +61,89 @@ class ForcastingController extends Controller
         $min_hasil['MSE'] = array();
         $index = 1;
 
-        // for($p=1;$p<=7;$p++){
-        //     if($p==1){
-        //         $loop = 2;
-        //     }
-        //     else{
-        //         $loop = 6;
-        //     }
+        if($metode==1){
+            $this->stationer($search);
+        }
+        elseif ($metode==2) {
+            $this->doubleTraining($data_training);
+        }
+        elseif ($metode==3) {
+            for($p=1;$p<=7;$p++){
+                if($p==1){
+                    $loop = 2;
+                }
+                else{
+                    $loop = 6;
+                }
 
-        //     for($l=1;$l<=$loop;$l++){
-        //         $hasil_training = $this->winterTraining($data_training, $p, $l);
-        //         $min_hasil['nilai_awal1'][$index] = $hasil_training[0];
-        //         $min_hasil['nilai_awal2'][$index] = $hasil_training[1];
-        //         $min_hasil['nilai_awal3'][$index] = $hasil_training[2];
-        //         $min_hasil['periode'][$index] = $hasil_training[3];
-        //         $min_hasil['alpha'][$index] = $hasil_training[4];
-        //         $min_hasil['beta'][$index] = $hasil_training[5];
-        //         $min_hasil['mu'][$index] = $hasil_training[6];
-        //         $min_hasil['MSE'][$index] = $hasil_training[7];
+                for($l=1;$l<=$loop;$l++){
+                    $hasil_training = $this->holtTraining($data_training, $p, $l);
+                    $min_hasil['nilai_awal1'][$index] = $hasil_training[0];
+                    $min_hasil['nilai_awal2'][$index] = $hasil_training[1];
+                    $min_hasil['periode'][$index] = $hasil_training[2];
+                    $min_hasil['alpha'][$index] = $hasil_training[3];
+                    $min_hasil['beta'][$index] = $hasil_training[4];
+                    $min_hasil['MSE'][$index] = $hasil_training[5];
 
-        //         $index = $index+1;
-        //     }
-        // }
+                    $index = $index+1;
+                }
+            }
+            $min_MSE = min($min_hasil['MSE']);
+            for($i=1;$i<=38;$i++){
+                if($min_hasil['MSE'][$i]==$min_MSE){
+                    $nilai_awal1 = $min_hasil['nilai_awal1'][$i];
+                    $nilai_awal2 = $min_hasil['nilai_awal2'][$i];
+                    $periode = $min_hasil['periode'][$i];
+                    $alpha = $min_hasil['alpha'][$i];
+                    $beta = $min_hasil['beta'][$i];
+                    $MSE = $min_hasil['MSE'][$i];
+                }
+            }
+            dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." MSE = ".$MSE);
+        }
+        
+        elseif ($metode==4) {
+            for($p=1;$p<=7;$p++){
+                if($p==1){
+                    $loop = 2;
+                }
+                else{
+                    $loop = 6;
+                }
+
+                for($l=1;$l<=$loop;$l++){
+                    $hasil_training = $this->winterTraining($data_training, $p, $l);
+                    $min_hasil['nilai_awal1'][$index] = $hasil_training[0];
+                    $min_hasil['nilai_awal2'][$index] = $hasil_training[1];
+                    $min_hasil['nilai_awal3'][$index] = $hasil_training[2];
+                    $min_hasil['periode'][$index] = $hasil_training[3];
+                    $min_hasil['alpha'][$index] = $hasil_training[4];
+                    $min_hasil['beta'][$index] = $hasil_training[5];
+                    $min_hasil['mu'][$index] = $hasil_training[6];
+                    $min_hasil['MSE'][$index] = $hasil_training[7];
+
+                    $index = $index+1;
+                }
+            }
+            $min_MSE = min($min_hasil['MSE']);
+            for($i=1;$i<=38;$i++){
+                if($min_hasil['MSE'][$i]==$min_MSE){
+                    $nilai_awal1 = $min_hasil['nilai_awal1'][$i];
+                    $nilai_awal2 = $min_hasil['nilai_awal2'][$i];
+                    $nilai_awal3 = $min_hasil['nilai_awal3'][$i];
+                    $periode = $min_hasil['periode'][$i];
+                    $alpha = $min_hasil['alpha'][$i];
+                    $beta = $min_hasil['beta'][$i];
+                    $mu = $min_hasil['mu'][$i];
+                    $MSE = $min_hasil['MSE'][$i];
+                }
+            }
+            dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." nilai 3 = ".$arrayHasil[2]." periode = ".$arrayHasil[3]." alpha = ".$arrayHasil[4]." beta = ".$arrayHasil[5]." mu = ".$arrayHasil[6]." MSE = ".$arrayHasil[7]);
+        }
+        
 
         // dd($min_hasil['MSE']);
-        $this->holtTraining($data_training, 1, 2);
+        // $this->holtTraining($data_training, 1, 2);
         // $parameter = array();
         // $parameter['nilai_awal'] = $hasil_training[0];
         // $parameter['periode'] = $hasil_training[1];
@@ -93,9 +152,9 @@ class ForcastingController extends Controller
         return view('home');       
     }
 
-    public function stationer(Request $request){
-        $search = Penjualan::where('id_obat',$request->input('obat'))->get();
-        $total = Penjualan::where('id_obat',$request->input('obat'))->count();
+    public function stationer($data){
+        $search = $data;
+        $total = count($data);
         $data_stationer = array();
         $data_training = array();
         $data_testing = array();
@@ -198,8 +257,8 @@ class ForcastingController extends Controller
                 $printMSE = $arrayHasil['MSE'][$i];
             }
         }
-        // dd("Nilai Awal = ".$printNilaiAwal."Alpha = ".$printAlpha." MSE = ".$printMSE);
-        return [$printNilaiAwal,$printAlpha];
+        dd("Nilai Awal = ".$printNilaiAwal." Alpha = ".$printAlpha." MSE = ".$printMSE);
+        // return [$printNilaiAwal,$printAlpha];
     }
 
     public function doubleTraining($data_training){
@@ -300,8 +359,8 @@ class ForcastingController extends Controller
                 $printMSE = $arrayHasil['MSE'][$i];
             }
         }
-        
-        return[$nilai_awal1, $printPeriode, $printAlpha];
+        dd("nilai awal 1 = ".$nilai_awal1." nilai awal 2 = ".$nilai_awal1." periode = ".$printPeriode." alpha = ".$printAlpha);
+        // return[$nilai_awal1, $printPeriode, $printAlpha];
     }
 
     public function holtTraining($data_training, $periode, $loop){
@@ -454,7 +513,7 @@ class ForcastingController extends Controller
                 }  
             }
 
-        dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." periode = ".$arrayHasil[2]." alpha = ".$arrayHasil[3]." beta = ".$arrayHasil[4]." MSE = ".$arrayHasil[5]);
+        // dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." periode = ".$arrayHasil[2]." alpha = ".$arrayHasil[3]." beta = ".$arrayHasil[4]." MSE = ".$arrayHasil[5]);
         return[$arrayHasil[0], $arrayHasil[1], $arrayHasil[2], $arrayHasil[3], $arrayHasil[4], $arrayHasil[5]]; 
     }
 
@@ -651,7 +710,7 @@ class ForcastingController extends Controller
                 }
             }
         }
-        dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." nilai 3 = ".$arrayHasil[2]." periode = ".$arrayHasil[3]." alpha = ".$arrayHasil[4]." beta = ".$arrayHasil[5]." mu = ".$arrayHasil[6]." MSE = ".$arrayHasil[7]);
+        // dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." nilai 3 = ".$arrayHasil[2]." periode = ".$arrayHasil[3]." alpha = ".$arrayHasil[4]." beta = ".$arrayHasil[5]." mu = ".$arrayHasil[6]." MSE = ".$arrayHasil[7]);
         return[$arrayHasil[0], $arrayHasil[1], $arrayHasil[2], $arrayHasil[3], $arrayHasil[4], $arrayHasil[5],$arrayHasil[6],$arrayHasil[7]];
     }
 
