@@ -27,7 +27,9 @@
                 <option value="1">Single</option>
                 <option value="2">Double</option>
                 <option value="3">Holt</option>
-                <option value="4">Winter</option>
+                <option value="4">Holt (coba)</option>
+                <option value="5">Winter</option>
+                <option value="6">Winter (coba)</option>
               </select>
             </div>
           </div>

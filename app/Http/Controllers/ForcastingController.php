@@ -101,8 +101,20 @@ class ForcastingController extends Controller
             }
             dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." MSE = ".$MSE);
         }
-        
+
         elseif ($metode==4) {
+            $hasil_training = $this->holtTraining($data_training, 1, 1);
+            $nilai_awal1 = $hasil_training[0];
+            $nilai_awal2 = $hasil_training[1];
+            $periode = $hasil_training[2];
+            $alpha = $hasil_training[3];
+            $beta = $hasil_training[4];
+            $MSE = $hasil_training[5];
+
+            dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." MSE = ".$MSE);
+        }
+        
+        elseif ($metode==5) {
             for($p=1;$p<=7;$p++){
                 if($p==1){
                     $loop = 2;
@@ -138,6 +150,20 @@ class ForcastingController extends Controller
                     $MSE = $min_hasil['MSE'][$i];
                 }
             }
+            dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." nilai 3 = ".$arrayHasil[2]." periode = ".$arrayHasil[3]." alpha = ".$arrayHasil[4]." beta = ".$arrayHasil[5]." mu = ".$arrayHasil[6]." MSE = ".$arrayHasil[7]);
+        }
+
+        elseif ($metode==6) {
+            $hasil_training = $this->winterTraining($data_training, 1, 1);
+            $nilai_awal1 = $hasil_training[0];
+            $nilai_awal2 = $hasil_training[1];
+            $nilai_awal3 = $hasil_training[2];
+            $periode = $hasil_training[3];
+            $alpha = $hasil_training[4];
+            $beta = $hasil_training[5];
+            $mu = $hasil_training[6];
+            $MSE = $hasil_training[7];
+
             dd("nilai 1 = ".$arrayHasil[0]." nilai 2 = ".$arrayHasil[1]." nilai 3 = ".$arrayHasil[2]." periode = ".$arrayHasil[3]." alpha = ".$arrayHasil[4]." beta = ".$arrayHasil[5]." mu = ".$arrayHasil[6]." MSE = ".$arrayHasil[7]);
         }
         
