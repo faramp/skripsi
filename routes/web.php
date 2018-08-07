@@ -19,5 +19,8 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/show', 'UploadController@index');
 Route::post('/fileupload', 'UploadController@upload');
-Route::get('/forecasting', 'ForcastingController@index');
-Route::post('/forecasting', 'ForcastingController@hitung');
+Route::get('/forecasting', 'Forcasting2Controller@index');
+Route::post('/forecasting', 'Forcasting2Controller@hitung');
+Route::get('/graph', function () {
+    return view('graph');
+});

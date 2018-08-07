@@ -41,134 +41,120 @@ class Forcasting2Controller extends Controller
         $testing = $total - $training;
         $data_training = array();
         $data_testing = array();
-        $metode = $request->input('metode');
-        $min_hasil = array();
+        $min_holt = array();
+        $min_winter = array();
         $min_metode = array();
+        dd($search);
 
         for($i=0; $i<=$training-1;$i++){
             $data_training[$i] = $search[$i]->qty;
-        }
-        
+        }        
         for($i=$training; $i<=$total-1; $i++){
             $data_testing[$i] = $search[$i]->qty;
         }
 
-        if($metode==1){
+        if($periode==1){
             $hasil = $this->stationer($search);
             $single = [
-                'nilai_awal' => $hasil[0],
-                'parameter' => "Alpha = ".$hasil[1],
-                'MSE' => $hasil[2]
+                "1.",
+                "Single",
+                $hasil[0],
+                "Alpha = ".$hasil[1],
+                $hasil[2]
             ];
             $min_metode[0] = $hasil[2];
         }
-        elseif ($metode==2) {
-            $hasil_training = $this->doubleTraining($data_training, $periode);
-            $hasil_testing = $this->doubleTesting($data_testing, $training, $hasil_training[0], $hasil_training[1], $hasil_training[2], $hasil_training[3]);
-            $double = [
-                'nilai_awal' => "Nilai 1 = ".$hasil_testing[0]." Nilai 2 = ".$hasil_testing[1],
-                'parameter' => "Alpha = ".$hasil_testing[3],
-                'MSE' => $hasil_testing[4]
+        else{
+            $single = [
+                "-",
+                "-",
+                "-"
             ];
-            $min_metode[1] = $hasil_testing[4];
-        }
-        elseif ($metode==3) {
-            if($periode==1){
-                $loop = 2;
-            }
-            else{
-                $loop = 6;
-            }
-            for($l=1;$l<=$loop;$l++){
-                $hasil_training = $this->holtTraining($data_training, $periode, $l);
-                if($l==1){
-                    $min_hasil[0] = $hasil_training[0];
-                    $min_hasil[1] = $hasil_training[1];
-                    $min_hasil[2] = $hasil_training[2];
-                    $min_hasil[3] = $hasil_training[3];
-                    $min_hasil[4] = $hasil_training[4];
-                    $min_hasil[5] = $hasil_training[5];
-                }
-                elseif($hasil_training[5] < $min_hasil[5]){
-                    $min_hasil[0] = $hasil_training[0];
-                    $min_hasil[1] = $hasil_training[1];
-                    $min_hasil[2] = $hasil_training[2];
-                    $min_hasil[3] = $hasil_training[3];
-                    $min_hasil[4] = $hasil_training[4];
-                    $min_hasil[5] = $hasil_training[5];
-                }
-            }
-            $hasil_testing = $this->holtTesting($data_testing, $training, $min_hasil[0], $min_hasil[1], $min_hasil[2], $min_hasil[3], $min_hasil[4]);
-            $holt = [
-                'nilai_awal' => "Nilai 1 = ".$hasil_testing[0]." Nilai 2 = ".$hasil_testing[1],
-                'parameter' => "Alpha = ".$hasil_testing[3]." Beta = ".$hasil_testing[4],
-                'MSE' => $hasil_testing[5]
-            ];
-            $min_metode[2] = $hasil_testing[5];
-            // dd("nilai 1 = ".$min_hasil[0]." nilai 2 = ".$min_hasil[1]." periode = ".$min_hasil[2]." alpha = ".$min_hasil[3]." beta = ".$min_hasil[4]." MSE = ".$min_hasil[5]);
+            $min_metode[0] = NULL;
         }
 
-        elseif ($metode==4) {
-            $hasil_training = $this->holtTraining($data_training, 1, 1);
-            $hasil_testing = $this->holtTesting($data_testing, $training, $hasil_training[0], $hasil_training[1], $hasil_training[2], $hasil_training[3], $hasil_training[4]);
-            $holt = [
-                'nilai_awal' => "Nilai 1 = ".$hasil_testing[0]." Nilai 2 = ".$hasil_testing[1],
-                'parameter' => "Alpha = ".$hasil_testing[3]." Beta = ".$hasil_testing[4],
-                'MSE' => $hasil_testing[5]
-            ];
+        $training_double = $this->doubleTraining($data_training, $periode);
+        $testing_double = $this->doubleTesting($data_testing, $training, $training_double[0], $training_double[1], $training_double[2], $training_double[3]);
+        $double = [
+            "2.",
+            "Double",
+            "Nilai 1 = ".$testing_double[0]."<br>Nilai 2 = ".$testing_double[1],
+            "Alpha = ".$testing_double[3],
+            $testing_double[4]
+        ];
+        $min_metode[1] = $testing_double[4];
+    
+        if($periode==1){
+            $loop = 2;
         }
-        
-        elseif ($metode==5) {
-            if($periode==1){
-                $loop = 2;
-            }
-            else{
-                $loop = 6;
-            }
-            for($l=1;$l<=$loop;$l++){
-                $hasil_training = $this->winterTraining($data_training, $periode, $l);
-                if($l==1){
-                    $min_hasil[0] = $hasil_training[0];
-                    $min_hasil[1] = $hasil_training[1];
-                    $min_hasil[2] = $hasil_training[2];
-                    $min_hasil[3] = $hasil_training[3];
-                    $min_hasil[4] = $hasil_training[4];
-                    $min_hasil[5] = $hasil_training[5];
-                    $min_hasil[6] = $hasil_training[6];
-                    $min_hasil[7] = $hasil_training[7];
-                }
-                elseif($hasil_training[7] < $min_hasil[7]){
-                    $min_hasil[0] = $hasil_training[0];
-                    $min_hasil[1] = $hasil_training[1];
-                    $min_hasil[2] = $hasil_training[2];
-                    $min_hasil[3] = $hasil_training[3];
-                    $min_hasil[4] = $hasil_training[4];
-                    $min_hasil[5] = $hasil_training[5];
-                    $min_hasil[6] = $hasil_training[6];
-                    $min_hasil[7] = $hasil_training[7];
-                }
-            }
-            $hasil_testing = $this->winterTesting($data_testing, $training, $min_hasil[0], $min_hasil[1], $min_hasil[2], $min_hasil[3], $min_hasil[4], $min_hasil[5], $min_hasil[6]);
-            $winter = [
-                'nilai_awal' => "Nilai 1 = ".$hasil_testing[0]." Nilai 2 = ".$hasil_testing[1]." Nilai 3 = ".$hasil_testing[2],
-                'parameter' => "Alpha = ".$hasil_testing[4]." Beta = ".$hasil_testing[5]." Miu = "$hasil_testing[6],
-                'MSE' => $hasil_testing[7]
-            ];
-            $min_metode[3] = $hasil_testing[7];
-            // dd("nilai 1 = ".$min_hasil[0]." nilai 2 = ".$min_hasil[1]." nilai 3 = ".$min_hasil[2]." periode = ".$min_hasil[3]." alpha = ".$min_hasil[4]." beta = ".$min_hasil[5]." mu = ".$min_hasil[6]." MSE = ".$min_hasil[7]);
+        else{
+            $loop = 6;
         }
+        for($l=1;$l<=$loop;$l++){
+            $training_holt = $this->holtTraining($data_training, $periode, $l);
+            $training_winter = $this->winterTraining($data_training, $periode, $l);
+            if($l==1){
+                $min_holt[0] = $training_holt[0];
+                $min_holt[1] = $training_holt[1];
+                $min_holt[2] = $training_holt[2];
+                $min_holt[3] = $training_holt[3];
+                $min_holt[4] = $training_holt[4];
+                $min_holt[5] = $training_holt[5];
+                $min_winter[0] = $training_winter[0];
+                $min_winter[1] = $training_winter[1];
+                $min_winter[2] = $training_winter[2];
+                $min_winter[3] = $training_winter[3];
+                $min_winter[4] = $training_winter[4];
+                $min_winter[5] = $training_winter[5];
+                $min_winter[6] = $training_winter[6];
+                $min_winter[7] = $training_winter[7];
+            }
+            elseif($training_holt[5] < $min_holt[5]){
+                $min_holt[0] = $training_holt[0];
+                $min_holt[1] = $training_holt[1];
+                $min_holt[2] = $training_holt[2];
+                $min_holt[3] = $training_holt[3];
+                $min_holt[4] = $training_holt[4];
+                $min_holt[5] = $training_holt[5];
+            }
+            elseif($training_winter[7] < $min_winter[7]){
+                $min_winter[0] = $training_winter[0];
+                $min_winter[1] = $training_winter[1];
+                $min_winter[2] = $training_winter[2];
+                $min_winter[3] = $training_winter[3];
+                $min_winter[4] = $training_winter[4];
+                $min_winter[5] = $training_winter[5];
+                $min_winter[6] = $training_winter[6];
+                $min_winter[7] = $training_winter[7];
+            }
+        }
+        $testing_holt = $this->holtTesting($data_testing, $training, $min_holt[0], $min_holt[1], $min_holt[2], $min_holt[3], $min_holt[4]);
+        $testing_winter = $this->winterTesting($data_testing, $training, $min_winter[0], $min_winter[1], $min_winter[2], $min_winter[3], $min_winter[4], $min_winter[5], $min_winter[6]);
+        $holt = [
+            "3.",
+            "Holt",
+            "Nilai 1 = $testing_holt[0]<br>Nilai 2 = $testing_holt[1]",
+            "Alpha = $testing_holt[3]<br>Beta = $testing_holt[4]",
+            $testing_holt[5]
+        ];
+        $winter = [
+            "4.",
+            "Winter",
+            "Nilai 1 = ".$testing_winter[0]."<br>Nilai 2 = ".$testing_winter[1]."<br>Nilai 3 = ".$testing_winter[2],
+            "Alpha = ".$testing_winter[4]."<br>Beta = ".$testing_winter[5]."<br>Miu = ".$testing_winter[6],
+            $testing_winter[7]
+        ];
+        $min_metode[2] = $testing_holt[5];
+        $min_metode[3] = $testing_winter[7];
 
-        elseif ($metode==6) {
-            $hasil_training = $this->winterTraining($data_training, 1, 1);
-            $hasil_testing = $this->winterTesting($data_testing, $training, $hasil_training[0], $hasil_training[1], $hasil_training[2], $hasil_training[3], $hasil_training[4], $hasil_training[5], $hasil_training[6]);
-            $winter = [
-                'nilai_awal' => "Nilai 1 = ".$hasil_testing[0]." Nilai 2 = ".$hasil_testing[1]." Nilai 3 = ".$hasil_testing[2],
-                'parameter' => "Alpha = ".$hasil_testing[4]." Beta = ".$hasil_testing[5]." Miu = "$hasil_testing[6],
-                'MSE' => $hasil_testing[7]
-            ];
-            // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
-        }
-        return view('output');       
+        $data = [
+            'single'    => $single,
+            'double'    => $double,
+            'holt'      => $holt,
+            'winter'    => $winter
+        ];
+        // dd($data);
+        return view('output', $data);       
     }
 //TRAINING
     public function stationer($data){
@@ -197,8 +183,8 @@ class Forcasting2Controller extends Controller
         $parameter = array();
         $parameter['nilai_awal'] = $hasil_training[0];
         $parameter['alpha'] = $hasil_training[1];
-        $this->singleTesting($data_testing,$training, $parameter['nilai_awal'], $parameter['alpha']);
-        // return view('home');       
+        $hasil_testing = $this->singleTesting($data_testing,$training, $parameter['nilai_awal'], $parameter['alpha']);
+        return [$hasil_testing[0], $hasil_testing[1], $hasil_testing[2]];       
     }
 
     public function singleTraining($data_training){
@@ -688,12 +674,12 @@ class Forcasting2Controller extends Controller
         }
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
-        dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
-        // return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
+        // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
+        return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
     }
 //END TESTING
 //FORECASTING
-    public function singleTesting($data_testing, $index, $nilai_awal, $alpha){
+    public function singleForecast($data_testing, $index, $nilai_awal, $alpha){
         $data = $data_testing;
         $total = count($data_testing);
         $yt = array();
@@ -721,7 +707,7 @@ class Forcasting2Controller extends Controller
         return[$nilai_awal, $alpha, $MSE];
     }
 
-    public function doubleTesting($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha){
+    public function doubleForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha){
         $data = $data_testing;
         $total = count($data_testing);
         $a1 = array();
@@ -760,7 +746,7 @@ class Forcasting2Controller extends Controller
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE];
     }
 
-    public function holtTesting($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha, $beta){
+    public function holtForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha, $beta){
         $data = $data_testing;
         $total = count($data_testing);
         $at = array();
@@ -795,7 +781,7 @@ class Forcasting2Controller extends Controller
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
     }
 
-    public function winterTesting($data_testing, $index, $nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu){
+    public function winterForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu){
         $data = $data_testing;
         $total = count($data_testing);       
         $at = array();

@@ -11,26 +11,29 @@
         <form role="form" method="post" action="{{url('/forecasting')}}" enctype="multipart/form-data"  class="form-horizontal">
           <input type="hidden" name="_token" value="{{ csrf_token() }}">
           <div class="box-body">
-          	<div class="form-group">
-              <label>Obat</label>              
-              <select class="form-control" name="obat" required>
-              	<option value="">- Pilih Obat -</option>
-              	@foreach($obat as $i)
-                <option value="{{$i->id_obat}}">{{$i->nama_obat}}</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Metode</label>              
-              <select class="form-control" name="metode" required>
-                <option value="">- Pilih Metode -</option>
-                <option value="1">Single</option>
-                <option value="2">Double</option>
-                <option value="3">Holt</option>
-                <option value="4">Holt (coba)</option>
-                <option value="5">Winter</option>
-                <option value="6">Winter (coba)</option>
-              </select>
+          	<div class="form-group">                   
+              <div class="col-xs-4">
+                <label>Obat</label>
+                <select class="form-control" name="obat" required>
+                  <option value="">- Pilih Obat -</option>
+                  @foreach($obat as $i)
+                  <option value="{{$i->id_obat}}">{{$i->nama_obat}}</option>
+                  @endforeach
+                </select>
+              </div>   
+              <div class="col-xs-4">
+                <label>Periode</label>
+                <select class="form-control" name="periode" required>
+                  <option value="">- Pilih Periode -</option>
+                  <option value="1">1 Hari</option>
+                  <option value="2">2 Hari</option>
+                  <option value="3">3 Hari</option>
+                  <option value="4">4 Hari</option>
+                  <option value="5">5 Hari</option>
+                  <option value="6">6 Hari</option>
+                  <option value="7">7 Hari</option>
+                </select>
+              </div>                             
             </div>
           </div>
           <!-- /.box-body -->
