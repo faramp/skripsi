@@ -39,14 +39,17 @@ class Forcasting2Controller extends Controller
         $periode = $request->input('periode');      
         $training = (int)($total * 0.9);
         $testing = $total - $training;
+        $data_asli = array();
         $data_training = array();
         $data_testing = array();
         $min_holt = array();
         $min_winter = array();
         $min_metode = array();
-        dd($search);
 
-        for($i=0; $i<=$training-1;$i++){
+        for($i=0; $i<=$total-1; $i++){
+            $data_asli[$i] = $search[$i]->qty;
+        }
+        for($i=0; $i<=$training-1; $i++){
             $data_training[$i] = $search[$i]->qty;
         }        
         for($i=$training; $i<=$total-1; $i++){
@@ -54,7 +57,7 @@ class Forcasting2Controller extends Controller
         }
 
         if($periode==1){
-            $hasil = $this->stationer($search);
+            $hasil = $this->stationer($data_asli);
             $single = [
                 "1.",
                 "Single",
@@ -83,7 +86,7 @@ class Forcasting2Controller extends Controller
             $testing_double[4]
         ];
         $min_metode[1] = $testing_double[4];
-    
+
         if($periode==1){
             $loop = 2;
         }
@@ -130,6 +133,9 @@ class Forcasting2Controller extends Controller
         }
         $testing_holt = $this->holtTesting($data_testing, $training, $min_holt[0], $min_holt[1], $min_holt[2], $min_holt[3], $min_holt[4]);
         $testing_winter = $this->winterTesting($data_testing, $training, $min_winter[0], $min_winter[1], $min_winter[2], $min_winter[3], $min_winter[4], $min_winter[5], $min_winter[6]);
+        $winter_forecast = $this->winterForecast($data_asli, $testing_winter[0], $testing_winter[1], $testing_winter[2], $testing_winter[3], $testing_winter[4], $testing_winter[5], $testing_winter[6]);
+        $hasil_forecast = $winter_forecast[8];
+        dd($hasil_forecast);
         $holt = [
             "3.",
             "Holt",
@@ -147,25 +153,45 @@ class Forcasting2Controller extends Controller
         $min_metode[2] = $testing_holt[5];
         $min_metode[3] = $testing_winter[7];
 
+        $pilih_metode = min($min_metode);
+        if($min_metode[0]==$pilih_metode){
+            $single_forecast = $this->singleForecast($data_asli, $hasil[0], $hasil[1]);
+            $hasil_forecast = $single_forecast[3];
+        }
+        elseif ($min_metode[1]==$pilih_metode) {
+            $double_forecast = $this->doubleForecast($data_asli, $testing_double[0], $testing_double[1], $testing_double[2], $testing_double[3]);
+            $hasil_forecast = $double_forecast[5];
+        }
+        elseif ($min_metode[2]==$pilih_metode) {
+            $holt_forecast = $this->holtForecast($data_asli, $testing_holt[0], $testing_holt[1], $testing_holt[2], $testing_holt[3], $testing_holt[4]);
+            $hasil_forecast = $holtForecast[6];
+        }
+        elseif ($min_metode[3]==$pilih_metode) {
+            $winter_forecast = $this->winterForecast($data_asli, $testing_winter[0], $testing_winter[1], $testing_winter[2], $testing_winter[3], $testing_winter[4], $testing_winter[5], $testing_winter[6]);
+            $hasil_forecast = $winter_forecast[8];
+        }
+
         $data = [
-            'single'    => $single,
-            'double'    => $double,
-            'holt'      => $holt,
-            'winter'    => $winter
+            'search'         => $search,
+            'single'         => $single,
+            'double'         => $double,
+            'holt'           => $holt,
+            'winter'         => $winter,
+            'periode'        => $periode,
+            'hasil_forecast' => $hasil_forecast
         ];
         // dd($data);
         return view('output', $data);       
     }
 //TRAINING
     public function stationer($data){
-        $search = $data;
         $total = count($data);
         $data_stationer = array();
         $data_training = array();
         $data_testing = array();
 
         for($i=0; $i<=$total-8;$i++){
-            $data_stationer[$i] = $search[$i+7]->qty - $search[$i]->qty; 
+            $data_stationer[$i] = $data[$i+7] - $data[$i]; 
         }
 
         $total_stationer = count($data_stationer);
@@ -679,154 +705,181 @@ class Forcasting2Controller extends Controller
     }
 //END TESTING
 //FORECASTING
-    public function singleForecast($data_testing, $index, $nilai_awal, $alpha){
-        $data = $data_testing;
-        $total = count($data_testing);
+    public function singleForecast($data_asli, $nilai_awal, $alpha){
+        $data = array();
+        $total_asli = count($data_asli);
+        for($i=0; $i<=$total_asli-8;$i++){
+            $data[$i] = $data_asli[$i+7] - $data_asli[$i]; 
+        }
+        $total = count($data);
         $yt = array();
         $eSquare = array();
         $sum = 0;
-        $batas = $index+$total-1;
-        for($i=$index;$i<=$batas;$i++){
-            if($i==$index){
+        for($i=0;$i<=$total;$i++){
+            if($i==0){
                 $yt[$i] = NULL;
                 $eSquare[$i] = NULL;
             }
-            elseif ($i==($index+1)) {
+            elseif ($i==1) {
                 $yt[$i] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $nilai_awal);
                 $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
             }
-            elseif (($i>$index+1)&&($i<=$batas)) {
+            elseif (($i>1)&&($i<=$total-1)) {
                 $yt[$i] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
                 $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
+            }
+            elseif ($i==$total) {
+                $forecast = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
+                $eSquare[$i] = NULL;
             }
             $sum = $sum + $eSquare[$i];
         }
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
         // dd("Nilai Awal = ".$nilai_awal." Alpha = ".$alpha." MSE = ".$MSE);
-        return[$nilai_awal, $alpha, $MSE];
+        return[$nilai_awal, $alpha, $MSE, $forecast];
     }
 
-    public function doubleForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha){
-        $data = $data_testing;
-        $total = count($data_testing);
+    public function doubleForecast($data_asli, $nilai_awal1, $nilai_awal2, $periode, $alpha){
+        $data = $data_asli;
+        $total = count($data_asli);
         $a1 = array();
         $a2 = array();
         $at = array();
         $bt = array();
         $yt = array();
         $eSquare = array();
+        $forecast = array();
         $sum = 0;
-        $batas = $index+$total-1;
-        $p = $index+$periode;
-        for($i=$index; $i<=$batas;$i++){
-            if($i==$index){
-                $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $nilai_awal1);
-                $a2[$i] = ($alpha * $a1[$i]) + ((1 - $alpha) * $nilai_awal2);
+        $batas = $periode+$total-1;
+        for($i=0; $i<=$batas;$i++){
+            if($i<=$total-1){
+                if($i==0){
+                    $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $nilai_awal1);
+                    $a2[$i] = ($alpha * $a1[$i]) + ((1 - $alpha) * $nilai_awal2);
+                }
+                elseif($i>0){
+                    $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $a1[$i-1]);
+                    $a2[$i] = ($alpha * $a1[$i]) + ((1 - $alpha) * $a2[$i-1]);
+                }
+                $at[$i] = (2 * $a1[$i]) - $a2[$i];
+                $bt[$i] = ($alpha / (1 - $alpha)) * ($a1[$i] - $a2[$i]);
+                if($i<$periode){
+                    $yt[$i] = NULL;
+                    $eSquare[$i] = NULL;
+                }
+                elseif($i>=$periode){
+                    $yt[$i] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
+                    $eSquare[$i] = pow(($data[$i]- $yt[$i]),2);
+                }
             }
-            elseif(($i>$index)&&($i<=$batas)){
-                $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $a1[$i-1]);
-                $a2[$i] = ($alpha * $a1[$i]) + ((1 - $alpha) * $a2[$i-1]);
-            }
-            $at[$i] = (2 * $a1[$i]) - $a2[$i];
-            $bt[$i] = ($alpha / (1 - $alpha)) * ($a1[$i] - $a2[$i]);
-            if($i<$p){
-                $yt[$i] = NULL;
+            elseif ($i>$total-1) {
+                $forecast[$i] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
                 $eSquare[$i] = NULL;
             }
-            elseif(($i>=$p)&&($i<=$batas)){
-                $yt[$i] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
-                $eSquare[$i] = pow(($data[$i]- $yt[$i]),2);
-            }
+
             $sum = $sum + $eSquare[$i];
         }
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." MSE = ".$MSE);
-        return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE];
+        return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE, $forecast];
     }
 
-    public function holtForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $periode, $alpha, $beta){
-        $data = $data_testing;
-        $total = count($data_testing);
+    public function holtForecast($data_asli, $nilai_awal1, $nilai_awal2, $periode, $alpha, $beta){
+        $data = $data_asli;
+        $total = count($data_asli);
         $at = array();
         $tt = array();
         $yt = array();
         $eSquare = array();
+        $forecast = array();
         $sum = 0;
-        $batas = $index+$total-1;
-        $p = $index+$periode;
-        for($i=$index;$i<=$batas;$i++){           
-            if($i==$index){
-                $at[$i] = $nilai_awal1;
-                $tt[$i] = $nilai_awal2;
-            }
-            elseif (($i>$index)&&($i<=$batas)) {
-                $at[$i] = ($alpha * $data[$i]) + ((1-$alpha)*($at[$i-1]+$tt[$i-1]));
-                $tt[$i] = ($beta * ($at[$i]-$at[$i-1])) + ((1-$beta)*$tt[$i-1]);
-            }
-            if($i<$p){
-                $yt[$i] = NULL;
+        $batas = $periode+$total-1;
+        for($i=0;$i<=$batas;$i++){  
+            if($i<=$total-1){
+                if($i==0){
+                    $at[$i] = $nilai_awal1;
+                    $tt[$i] = $nilai_awal2;
+                }
+                elseif($i>0) {
+                    $at[$i] = ($alpha * $data[$i]) + ((1-$alpha)*($at[$i-1]+$tt[$i-1]));
+                    $tt[$i] = ($beta * ($at[$i]-$at[$i-1])) + ((1-$beta)*$tt[$i-1]);
+                }
+                if($i<$periode){
+                    $yt[$i] = NULL;
+                    $eSquare[$i] = NULL;
+                }
+                elseif($i>=$periode){
+                    $yt[$i] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
+                    $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);    
+                }
+            }         
+            
+            elseif($i>$total-1) {
+                $forecast[$i] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
                 $eSquare[$i] = NULL;
-            }
-            elseif (($i>=$p)&&($i<=$batas)){
-                $yt[$i] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
-                $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);    
             }
             $sum = $sum + $eSquare[$i];
         }
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." Beta = ".$beta." MSE = ".$MSE);
-        return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
+        return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE, $forecast];
     }
 
-    public function winterForecast($data_testing, $index, $nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu){
-        $data = $data_testing;
-        $total = count($data_testing);       
+    public function winterForecast($data_asli, $nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu){
+        $data = $data_asli;
+        $total = count($data_asli);       
         $at = array();
         $tt = array();
         $st = array();
         $yt = array();
         $eSquare = array();
+        $forecast = array();
         $sum = 0;
-        $batas = $index+$total-1;
-        $p = $index+$periode;
-        for($i=$index;$i<=$batas;$i++){            
-            if($i==$index){
-                $at[$i] = $nilai_awal1;
-                $tt[$i] = $nilai_awal2;
-                $st[$i] = $nilai_awal3;
-                $yt[$i] = NULL;
+        $batas = $periode+$total-1;
+        for($i=0;$i<=$batas;$i++){
+            if($i<=$total-1){
+                if($i==0){
+                    $at[$i] = $nilai_awal1;
+                    $tt[$i] = $nilai_awal2;
+                    $st[$i] = $nilai_awal3;
+                    $yt[$i] = NULL;
+                    $eSquare[$i] = NULL;
+                }
+                elseif($i>0){
+                    if(($i>=1)&&($i<=7)){
+                        $at[$i] = ($alpha * ($data[$i]/$st[0])) + ((1-$alpha) * ($at[$i-1] + $tt[$i-1]));
+                        $st[$i] = ($mu * ($data[$i]/$at[$i])) + ((1-$mu) * $st[0]);
+                        if($i<$periode){
+                            $yt[$i] = NULL;
+                            $eSquare[$i] = NULL;
+                        }
+                        else{
+                            $yt[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[0];
+                            $eSquare[$i] = pow(($data[$i]-$yt[$i]),2);
+                        }
+                    }
+                    elseif($i>7){
+                        $at[$i] = ($alpha * ($data[$i]/$st[$i-7])) + ((1-$alpha) * ($at[$i-1] + $tt[$i-1]));
+                        $st[$i] = ($mu * ($data[$i]/$at[$i])) + ((1-$mu) * $st[$i-7]);
+                        $yt[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
+                        $eSquare[$i] = pow(($data[$i]-$yt[$i]),2);                    
+                    }                
+                    $tt[$i] = ($beta * ($at[$i]-$at[$i-1])) + ((1-$beta) * $tt[$i-1]);             
+                }
+            }            
+            elseif($i>$total-1){
+                $forecast[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
                 $eSquare[$i] = NULL;
-            }
-            elseif(($i>$index)&&($i<=$batas)) {
-                if(($i>=$index+1)&&($i<=$index+7)){
-                    $at[$i] = ($alpha * ($data[$i]/$st[$index])) + ((1-$alpha) * ($at[$i-1] + $tt[$i-1]));
-                    $st[$i] = ($mu * ($data[$i]/$at[$i])) + ((1-$mu) * $st[$index]);
-                    if($i<$p){
-                        $yt[$i] = NULL;
-                        $eSquare[$i] = NULL;
-                    }
-                    else{
-                        $yt[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$index];
-                        $eSquare[$i] = pow(($data[$i]-$yt[$i]),2);
-                    }
-                }
-                elseif($i>$index+7){
-                    $at[$i] = ($alpha * ($data[$i]/$st[$i-7])) + ((1-$alpha) * ($at[$i-1] + $tt[$i-1]));
-                    $st[$i] = ($mu * ($data[$i]/$at[$i])) + ((1-$mu) * $st[$i-7]);
-                    $yt[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
-                    $eSquare[$i] = pow(($data[$i]-$yt[$i]),2);
-                }
-                $tt[$i] = ($beta * ($at[$i]-$at[$i-1])) + ((1-$beta) * $tt[$i-1]);             
             }
             $sum = $sum + $eSquare[$i];
         }
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
-        dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
-        // return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
+        // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
+        return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE, $forecast];
     }
 //END FORECASTING
 }

@@ -1,49 +1,38 @@
-<!DOCTYPE HTML>
-<html>
-<head>
-<script>
-window.onload = function() {
- 
-var dataPoints = [];
- 
-var chart = new CanvasJS.Chart("chartContainer", {
-	animationEnabled: true,
-	theme: "light2",
-	zoomEnabled: true,
-	title: {
-		text: "Bitcoin Price - 2017"
-	},
-	axisY: {
-		title: "Price in USD",
-		titleFontSize: 24,
-		prefix: "$"
-	},
-	data: [{
-		type: "line",
-		yValueFormatString: "$#,##0.00",
-		dataPoints: dataPoints
-	}]
-});
- 
-function addData(data) {
-	var dps = data.price_usd;
-	for (var i = 0; i < dps.length; i++) {
-		dataPoints.push({
-			x: new Date(dps[i][0]),
-			y: dps[i][1]
-		});
-	}
-	chart.render();
-}
- 
-$.getJSON("https://canvasjs.com/data/gallery/php/bitcoin-price.json", addData);
- 
-}
-</script>
-</head>
-<body>
-<div id="chartContainer" style="height: 370px; width: 100%;"></div>
-<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
-<script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
-</body>
-</html> 
+@extends('adminlte::page')
+
+@section('title', 'Graph')
+
+@section('content_header')
+    <h1>Graph</h1>
+@stop
+
+@section('content')
+  <div id="curve_chart" style="width: 1100px; height: 400px"></div>
+@stop
+@section('js')
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Year', 'Qty'],
+          @foreach($search as $s)
+          ['{{date('d-M-Y', strtotime($s->tgl_penjualan))}}', {{$s->qty}}],
+          @endforeach
+        ]);
+
+        var options = {
+          title: 'Data Penjualan',
+          curveType: 'function',
+          legend: { position: 'bottom' },
+          pointSize: 5,
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+@stop

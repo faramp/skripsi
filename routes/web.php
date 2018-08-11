@@ -16,7 +16,7 @@ Route::get('/', function () {
 });
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/home', 'HomeController@index');
 Route::get('/show', 'UploadController@index');
 Route::post('/fileupload', 'UploadController@upload');
 Route::get('/forecasting', 'Forcasting2Controller@index');
