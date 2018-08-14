@@ -59,6 +59,10 @@
         @endforeach
       </tr>
     </table>
+    <p>Hasil peramalan untuk {{$periode}} hari adalah: </p>
+    @for($p=1; $p<=$periode; $p++)
+    <p>Hari ke-{{$p}} kedepan yaitu {{$hasil_forecast[$p-1]}}</p>
+    @endfor
   </div>
   <!-- /.box-body -->
 </div>

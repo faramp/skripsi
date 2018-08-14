@@ -45,6 +45,7 @@ class Forcasting2Controller extends Controller
         $min_holt = array();
         $min_winter = array();
         $min_metode = array();
+        $hasil_forecast = array();
 
         for($i=0; $i<=$total-1; $i++){
             $data_asli[$i] = $search[$i]->qty;
@@ -133,9 +134,6 @@ class Forcasting2Controller extends Controller
         }
         $testing_holt = $this->holtTesting($data_testing, $training, $min_holt[0], $min_holt[1], $min_holt[2], $min_holt[3], $min_holt[4]);
         $testing_winter = $this->winterTesting($data_testing, $training, $min_winter[0], $min_winter[1], $min_winter[2], $min_winter[3], $min_winter[4], $min_winter[5], $min_winter[6]);
-        $winter_forecast = $this->winterForecast($data_asli, $testing_winter[0], $testing_winter[1], $testing_winter[2], $testing_winter[3], $testing_winter[4], $testing_winter[5], $testing_winter[6]);
-        $hasil_forecast = $winter_forecast[8];
-        dd($hasil_forecast);
         $holt = [
             "3.",
             "Holt",
@@ -729,7 +727,7 @@ class Forcasting2Controller extends Controller
                 $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
             }
             elseif ($i==$total) {
-                $forecast = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
+                $forecast[0] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
                 $eSquare[$i] = NULL;
             }
             $sum = $sum + $eSquare[$i];
@@ -753,6 +751,7 @@ class Forcasting2Controller extends Controller
         $sum = 0;
         $batas = $periode+$total-1;
         for($i=0; $i<=$batas;$i++){
+            $j=0;
             if($i<=$total-1){
                 if($i==0){
                     $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $nilai_awal1);
@@ -772,10 +771,11 @@ class Forcasting2Controller extends Controller
                     $yt[$i] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
                     $eSquare[$i] = pow(($data[$i]- $yt[$i]),2);
                 }
-            }
-            elseif ($i>$total-1) {
-                $forecast[$i] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
+            }            
+            elseif($i>$total-1){
+                $forecast[$j] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
                 $eSquare[$i] = NULL;
+                $j = $j+1;
             }
 
             $sum = $sum + $eSquare[$i];
@@ -796,7 +796,8 @@ class Forcasting2Controller extends Controller
         $forecast = array();
         $sum = 0;
         $batas = $periode+$total-1;
-        for($i=0;$i<=$batas;$i++){  
+        for($i=0;$i<=$batas;$i++){ 
+            $j=0; 
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -814,11 +815,11 @@ class Forcasting2Controller extends Controller
                     $yt[$i] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
                     $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);    
                 }
-            }         
-            
+            }    
             elseif($i>$total-1) {
-                $forecast[$i] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
+                $forecast[$j] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
                 $eSquare[$i] = NULL;
+                $j = $j+1;
             }
             $sum = $sum + $eSquare[$i];
         }
@@ -840,6 +841,7 @@ class Forcasting2Controller extends Controller
         $sum = 0;
         $batas = $periode+$total-1;
         for($i=0;$i<=$batas;$i++){
+            $j=0;
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -869,10 +871,11 @@ class Forcasting2Controller extends Controller
                     }                
                     $tt[$i] = ($beta * ($at[$i]-$at[$i-1])) + ((1-$beta) * $tt[$i-1]);             
                 }
-            }            
+            }     
             elseif($i>$total-1){
-                $forecast[$i] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
+                $forecast[$j] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
                 $eSquare[$i] = NULL;
+                $j = $j+1;
             }
             $sum = $sum + $eSquare[$i];
         }

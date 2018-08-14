@@ -21,6 +21,4 @@ Route::get('/show', 'UploadController@index');
 Route::post('/fileupload', 'UploadController@upload');
 Route::get('/forecasting', 'Forcasting2Controller@index');
 Route::post('/forecasting', 'Forcasting2Controller@hitung');
-Route::get('/graph', function () {
-    return view('graph');
-});
+Route::get('/graph', 'ForcastingController@index');
