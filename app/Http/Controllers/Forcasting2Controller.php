@@ -162,7 +162,7 @@ class Forcasting2Controller extends Controller
         }
         elseif ($min_metode[2]==$pilih_metode) {
             $holt_forecast = $this->holtForecast($data_asli, $testing_holt[0], $testing_holt[1], $testing_holt[2], $testing_holt[3], $testing_holt[4]);
-            $hasil_forecast = $holtForecast[6];
+            $hasil_forecast = $holt_forecast[6];
         }
         elseif ($min_metode[3]==$pilih_metode) {
             $winter_forecast = $this->winterForecast($data_asli, $testing_winter[0], $testing_winter[1], $testing_winter[2], $testing_winter[3], $testing_winter[4], $testing_winter[5], $testing_winter[6]);
@@ -712,6 +712,7 @@ class Forcasting2Controller extends Controller
         $total = count($data);
         $yt = array();
         $eSquare = array();
+        $nilai_asli = array();
         $sum = 0;
         for($i=0;$i<=$total;$i++){
             if($i==0){
@@ -722,16 +723,30 @@ class Forcasting2Controller extends Controller
                 $yt[$i] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $nilai_awal);
                 $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
             }
-            elseif (($i>1)&&($i<=$total-1)) {
+            elseif(($i>1)&&($i<=$total)){
                 $yt[$i] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
-                $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
-            }
-            elseif ($i==$total) {
-                $forecast[0] = ($alpha * $data[$i-1]) + ((1 - $alpha) * $yt[$i-1]);
-                $eSquare[$i] = NULL;
+                if($i==$total){
+                    $eSquare[$i] = NULL;
+                }
+                else{
+                    $eSquare[$i] = pow(($data[$i] - $yt[$i]),2);
+                }                
             }
             $sum = $sum + $eSquare[$i];
         }
+        for($i=1;$i<=$total+1;$i++){
+            if($i==1){
+                $nilai_asli[$i] = (($yt[$i]-((1 - $alpha) * $nilai_awal))/$alpha)+$data_asli[$i-1];
+            }
+            else{
+                if($i==$total+1){
+                    $yt[$i] = ((1 - $alpha) * $yt[$i-1]);
+                }
+                $nilai_asli[$i] = (($yt[$i]-((1 - $alpha) * $yt[$i-1]))/$alpha)+$data_asli[$i-1]; 
+            }
+        }
+        dd($nilai_asli);
+        $forecast[1] = $nilai_asli[$total+1];
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
         // dd("Nilai Awal = ".$nilai_awal." Alpha = ".$alpha." MSE = ".$MSE);
@@ -751,7 +766,7 @@ class Forcasting2Controller extends Controller
         $sum = 0;
         $batas = $periode+$total-1;
         for($i=0; $i<=$batas;$i++){
-            $j=0;
+            $j=1;
             if($i<=$total-1){
                 if($i==0){
                     $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $nilai_awal1);
@@ -773,7 +788,7 @@ class Forcasting2Controller extends Controller
                 }
             }            
             elseif($i>$total-1){
-                $forecast[$j] = $at[$i-$periode] + $bt[$i-$periode] * $periode;
+                $forecast[$j] = number_format($at[$i-$periode] + $bt[$i-$periode] * $periode);
                 $eSquare[$i] = NULL;
                 $j = $j+1;
             }
@@ -797,7 +812,7 @@ class Forcasting2Controller extends Controller
         $sum = 0;
         $batas = $periode+$total-1;
         for($i=0;$i<=$batas;$i++){ 
-            $j=0; 
+            $j=1; 
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -817,7 +832,7 @@ class Forcasting2Controller extends Controller
                 }
             }    
             elseif($i>$total-1) {
-                $forecast[$j] = $at[$i-$periode] + $tt[$i-$periode] * $periode;
+                $forecast[$j] = number_format($at[$i-$periode] + $tt[$i-$periode] * $periode);
                 $eSquare[$i] = NULL;
                 $j = $j+1;
             }
@@ -841,7 +856,7 @@ class Forcasting2Controller extends Controller
         $sum = 0;
         $batas = $periode+$total-1;
         for($i=0;$i<=$batas;$i++){
-            $j=0;
+            $j=1;
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -873,7 +888,7 @@ class Forcasting2Controller extends Controller
                 }
             }     
             elseif($i>$total-1){
-                $forecast[$j] = ($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7];
+                $forecast[$j] = number_format(($at[$i-$periode] - $tt[$i-$periode] * $periode) * $st[$i-7]);
                 $eSquare[$i] = NULL;
                 $j = $j+1;
             }
