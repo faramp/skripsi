@@ -15,10 +15,14 @@ Route::get('/', function () {
     return view('home');
 });
 Auth::routes();
-
-Route::get('/home', 'HomeController@index');
-Route::get('/show', 'UploadController@index');
+Route::get('/datepicker', function () {
+    return view('datepicker');
+});
+Route::get('/tabel', 'HomeController@index');
+Route::get('datatable/{id_obat}/{tgl_dari}/{tgl_sampai}', 'HomeController@datatable');
+Route::get('/upload', 'UploadController@index');
+Route::get('/input', 'InputController@index');
+Route::post('/input', 'InputController@input');
 Route::post('/fileupload', 'UploadController@upload');
-Route::get('/forecasting', 'Forcasting2Controller@index');
-Route::post('/forecasting', 'Forcasting2Controller@hitung');
-Route::get('/graph', 'ForcastingController@index');
+Route::get('/forecasting', 'ForcastingController@index');
+Route::post('/forecasting', 'ForcastingController@hitung');

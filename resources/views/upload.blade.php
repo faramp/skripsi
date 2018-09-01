@@ -20,7 +20,7 @@
         </select>
       	<p style="font-size: 15px;">Silahkan upload file penjualan dalam format Excel (.xlsx atau .xls)</p>
         	<label for="exampleInputFile">File input</label>
-        	<input name="excel" type="file" id="excel" type="excel"type="file" id="exampleInputFile">
+        	<input name="excel" type="file" id="excel">
       </div>
       <!-- /.box-body -->
       <div class="box-footer">

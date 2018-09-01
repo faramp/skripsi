@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Forcasting')
+@section('title', 'Exponential Forcasting')
 
 @section('content_header')
     <h1>Exponential Smoothing</h1>

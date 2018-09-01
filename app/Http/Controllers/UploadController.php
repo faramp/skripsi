@@ -39,26 +39,26 @@ class UploadController extends Controller
 
     public function upload(Request $request)
     {
-            $nama = time() .'.'.$request->file('excel')->getClientOriginalExtension();
-            $file = $request->file('excel')->move('upload',$nama);
-            $file = public_path('upload/'.$nama);
-            $penjualan = Excel::load($file)->all()->toArray();
+        $nama = time() .'.'.$request->file('excel')->getClientOriginalExtension();
+        $file = $request->file('excel')->move('upload',$nama);
+        $file = public_path('upload/'.$nama);
+        $penjualan = Excel::load($file)->all()->toArray();
 
-            foreach ($penjualan as $p) {
-                $cek = Penjualan::where('id_obat',$request->input('obat'))->where('tgl_penjualan',$p['tanggal'])->first(); 
-                if(!empty($cek)){
-                    Penjualan::where('id_obat',$request->input('obat'))
-                            ->where('tgl_penjualan',$p['tanggal'])
-                            ->update(['qty' => $p['total']]);
-                }
-                else{
-                    Penjualan::create([
-                        'id_obat'       => $request->input('obat'),
-                        'tgl_penjualan' => $p['tanggal'],
-                        'qty'           => $p['total']
-                    ]);
-                }    
+        foreach ($penjualan as $p) {
+            $cek = Penjualan::where('id_obat',$request->input('obat'))->where('tgl_penjualan',$p['tanggal'])->first(); 
+            if(!empty($cek)){
+                Penjualan::where('id_obat',$request->input('obat'))
+                        ->where('tgl_penjualan',$p['tanggal'])
+                        ->update(['qty' => $p['total']]);
             }
-            return view('home');
+            else{
+                Penjualan::create([
+                    'id_obat'       => $request->input('obat'),
+                    'tgl_penjualan' => $p['tanggal'],
+                    'qty'           => $p['total']
+                ]);
+            }    
+        }
+        return view('home');
     }
 }
