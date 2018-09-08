@@ -12,17 +12,21 @@
 */
 
 Route::get('/', function () {
-    return view('home');
+    return view('logincustom');
 });
-Auth::routes();
-Route::get('/datepicker', function () {
-    return view('datepicker');
+Route::post('/logincustom','AksesController@loginAction');
+Route::group(['middleware' => ['auth']], function(){
+	Route::get('/tabel', 'LaporanController@index');
+	Route::get('/dashboard', function(){
+		return view('home');
+	});
+	Route::get('/input', 'InputController@index');
+	Route::get('datatable/{id_obat}/{tgl_dari}/{tgl_sampai}', 'LaporanController@datatable');
+	Route::get('/upload', 'UploadController@index');
+	Route::post('/input', 'InputController@input');
+	Route::post('/fileupload', 'UploadController@upload');
+	Route::get('/forecasting', 'ForcastingController@index');
+	Route::post('/forecasting', 'ForcastingController@hitung');
+	Route::get('/logoutcustom', 'AksesController@logout');
 });
-Route::get('/tabel', 'HomeController@index');
-Route::get('datatable/{id_obat}/{tgl_dari}/{tgl_sampai}', 'HomeController@datatable');
-Route::get('/upload', 'UploadController@index');
-Route::get('/input', 'InputController@index');
-Route::post('/input', 'InputController@input');
-Route::post('/fileupload', 'UploadController@upload');
-Route::get('/forecasting', 'ForcastingController@index');
-Route::post('/forecasting', 'ForcastingController@hitung');
+

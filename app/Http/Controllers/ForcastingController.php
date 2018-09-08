@@ -37,7 +37,7 @@ class ForcastingController extends Controller
         $search = Penjualan::where('id_obat',$request->input('obat'))->get();
         $total = Penjualan::where('id_obat',$request->input('obat'))->count(); 
         $periode = $request->input('periode');      
-        $training = (int)($total * 0.9);
+        $training = (int)($total * 0.8);
         $testing = $total - $training;
         $data_asli = array();
         $data_training = array();
@@ -155,7 +155,7 @@ class ForcastingController extends Controller
         }
 
         $total_stationer = count($data_stationer);
-        $training = (int)($total_stationer * 0.9);
+        $training = (int)($total_stationer * 0.8);
         $testing = $total_stationer - $training;
 
         for($i=0; $i<=$training-1;$i++){
@@ -175,10 +175,10 @@ class ForcastingController extends Controller
 
     public function singleTraining($data_training){
         $data = $data_training;
-        $total = count($data_training);
-        $alpha = 0;
+        $total = count($data_training);        
         $arrayHasil = array();     
         for($i=0;$i<=1;$i++){
+            $alpha = 0;
             if($i==0){
                 $nilai_awal = $data[0];
             }
@@ -205,14 +205,13 @@ class ForcastingController extends Controller
                     }
                     $sum = $sum + $eSquare[$k];
                 }        
-                $count = count(array_filter($eSquare));
-                $MSE = $sum / $count;
+                $MSE = $sum / ($total-1);
                 $arrayHasil[] = [$nilai_awal,$alpha,$MSE];
-            }             
-            // $arraymse = array_column($arrayHasil,2);
-            // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
-            // dd($arrayHasil);
+            }      
         }
+        // $arraymse = array_column($arrayHasil,2);
+        // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
+        // dd($arrayHasil);
         $min = min(array_column($arrayHasil,2));
         $index = array_search($min, array_column($arrayHasil,2));
         // dd($arrayHasil[$index]);
@@ -257,8 +256,7 @@ class ForcastingController extends Controller
                 }
                 $sum = $sum + $eSquare[$i];
             }
-            $count = count(array_filter($eSquare));
-            $MSE = $sum / $count;
+            $MSE = $sum / ($total-$periode);
             $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE];
         }
         // $arraymse = array_column($arrayHasil,4);
@@ -276,6 +274,7 @@ class ForcastingController extends Controller
         $sumP = 0;
         $sumA = 0;  
         $arrayHasil = array(); 
+        $arrayHasilKombinasi = array();
         if($periode==1){
             $kombinasi = 1;
         }  
@@ -311,12 +310,12 @@ class ForcastingController extends Controller
                 $nilai_awal1 = (1/$periode) * $sumA;
                 $nilai_awal2 = ($data[$periode-1] - $data[0])/($periode-1);
             }   
-            $beta = 0;
+            $alpha = 0;
             for($a=1;$a<=99;$a++){
-                $beta = $beta + 0.01;
-                $alpha = 0;        
+                $alpha = $alpha + 0.01;
+                $beta = 0;        
                 for($b=1;$b<=99;$b++){
-                    $alpha = $alpha + 0.01;
+                    $beta = $beta + 0.01;
                     $sum = 0;
                     $count = 0;
                     $at = array();
@@ -342,9 +341,8 @@ class ForcastingController extends Controller
                         }
                         $sum = $sum + $eSquare[$i];               
                     }
-                    $count = count(array_filter($eSquare));
-                    $MSE = $sum / $count;
-                    if($l==1 && $a==1 && $b==1){
+                    $MSE = $sum / ($total-$periode);
+                    if($a==1 && $b==1){
                         $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
                     }
                     elseif($MSE<$arrayHasil[0][5]){
@@ -352,7 +350,11 @@ class ForcastingController extends Controller
                     }    
                 }  
             }
+            $arrayHasilKombinasi[$l] = $arrayHasil[0];
         }
+        $arraymse = array_column($arrayHasilKombinasi,5);
+        array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasilKombinasi);
+        dd($arrayHasilKombinasi);
         // $arraymse = array_column($arrayHasil,5);
         // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
         // dd($arrayHasil);        
@@ -365,6 +367,7 @@ class ForcastingController extends Controller
         $sumP = 0;
         $sumA = 0;
         $arrayHasil = array();
+        $arrayHasilKombinasi = array();
         if($periode==1){
             $kombinasi = 1;
         }  
@@ -448,9 +451,8 @@ class ForcastingController extends Controller
                             }
                             $sum = $sum + $eSquare[$i];
                         }
-                        $count = count(array_filter($eSquare));
-                        $MSE = $sum / $count;
-                        if($l==1 && $a==1 && $b==1 && $m==1){
+                        $MSE = $sum / ($total-$periode);
+                        if($a==1 && $b==1 && $m==1){
                             $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
                         }
                         elseif($MSE<$arrayHasil[0][7]){
@@ -459,7 +461,9 @@ class ForcastingController extends Controller
                     }
                 }
             }
-        } 
+            $arrayHasilKombinasi[$l] = $arrayHasil[0];
+        }
+        dd($arrayHasilKombinasi); 
         // $arraymse = array_column($arrayHasil,7);
         // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
         // dd($arrayHasil);  
@@ -528,8 +532,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE];
     }
@@ -563,8 +566,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." Beta = ".$beta." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
     }
@@ -611,8 +613,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
         return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
     }
@@ -710,8 +711,7 @@ class ForcastingController extends Controller
 
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE, $forecast];
     }
@@ -753,8 +753,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." Beta = ".$beta." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE, $forecast];
     }
@@ -809,8 +808,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $count = count(array_filter($eSquare));
-        $MSE = $sum / $count;
+        $MSE = $sum / $total-$periode;
         // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
         return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE, $forecast];
     }

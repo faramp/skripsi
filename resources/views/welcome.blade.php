@@ -78,17 +78,32 @@
             @endif
 
             <div class="content">
-                <div class="title m-b-md">
-                    Laravel
-                </div>
+                <form class="form-horizontal">
+  <div class="box-body">
+    <div class="form-group">
+      <label for="username" class="col-sm-2 control-label">Username</label>
 
-                <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
-                </div>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password" class="col-sm-2 control-label">Password</label>
+
+      <div class="col-sm-10">
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+      </div>
+    </div>
+    <div class="form-group">
+        <a href="">Daftar</a>
+    </div>
+  </div>
+  <!-- /.box-body -->
+  <div class="box-footer">
+    <button type="submit" class="btn btn-info pull-right">Login</button>
+  </div>
+  <!-- /.box-footer -->
+</form>
             </div>
         </div>
     </body>

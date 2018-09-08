@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Excel;
+use Auth;
+use Session;
+use Illuminate\Support\Facades\Redirect;
 
 class UploadController extends Controller
 {
@@ -49,16 +52,19 @@ class UploadController extends Controller
             if(!empty($cek)){
                 Penjualan::where('id_obat',$request->input('obat'))
                         ->where('tgl_penjualan',$p['tanggal'])
-                        ->update(['qty' => $p['total']]);
+                        ->update(['qty' => $p['total']],
+                                ['id_user' => Auth::user()->id_user]);
             }
             else{
                 Penjualan::create([
                     'id_obat'       => $request->input('obat'),
                     'tgl_penjualan' => $p['tanggal'],
-                    'qty'           => $p['total']
+                    'qty'           => $p['total'],
+                    'id_user'       => Auth::user()->id_user
                 ]);
             }    
         }
-        return view('home');
+        Session::put('alert-success', 'File Berhasil di Upload');
+        return Redirect::back();
     }
 }

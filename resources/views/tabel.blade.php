@@ -43,14 +43,16 @@
                   <th><i class="left-menu-link-icon icmn-clipboard3"></i> Tanggal</th>
                   <th><i class="left-menu-link-icon icmn-copy"></i> Nama Obat</th>
                   <th><i class="left-menu-link-icon icmn-codepen"></i> Qty</th>
+                  <th><i class="left-menu-link-icon icmn-codepen"></i> Pegawai</th>
                 </tr>
                 </thead>
                 <tfoot>
                 <tr>
                   <th></th>
-                  <th></th>
-                  <th></th>
+                  <th></th>                  
                   <th><i class="left-menu-link-icon icmn-codepen"></i> Total Qty</th>
+                  <th></th>
+                  <th></th>
                 </tr>
                 </tfoot>
                 <tbody>
@@ -94,8 +96,15 @@ var tglsampai = $("#tgl_sampai");
           {data: 'ID_PENJUALAN', name: 'ID_PENJUALAN'},
           {data: 'TGL_PENJUALAN', name: 'TGL_PENJUALAN'},
           {data: 'NAMA_OBAT', name: 'NAMA_OBAT'},
-          {data: 'QTY', name: 'QTY'}
-        ]
+          {data: 'QTY', name: 'QTY'},
+          {data: 'USERNAME', name: 'USERNAME'}
+        ],'footerCallback': function( tfoot, data, start, end, display ) {
+          var response = this.api().ajax.json();
+             if(response){
+                var $th = $(tfoot).find('th');
+                $th.eq(3).html("<b>"+response['totalQty']+"</b>");
+             }
+         }
       });  
       $(document).on('click', '.filterLaporan', function() {
         var generateUrl = generate_url_filter();

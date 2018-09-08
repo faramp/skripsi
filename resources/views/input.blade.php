@@ -7,6 +7,17 @@
 @stop
 
 @section('content')
+<div class="flash-message" style="margin-left: -16px;margin-right: -16px; margin-top: 13px;">
+  @foreach (['danger', 'warning', 'success', 'info'] as $msg)
+  @if(Session::has('alert-' . $msg))
+<div class="alert alert-{{ $msg }}">
+  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  <p class="" style="border-radius: 0">{{ Session::get('alert-' . $msg) }}</p>
+</div>
+  {!!Session::forget('alert-' . $msg)!!}
+  @endif
+  @endforeach
+</div>
   <div class="box box-primary">
     <form role="form" method="post" action="{{url('/input')}}" enctype="multipart/form-data"  class="form-horizontal">
       <input type="hidden" name="_token" value="{{ csrf_token() }}">

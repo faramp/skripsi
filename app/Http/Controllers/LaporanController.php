@@ -9,7 +9,7 @@ use App\Models\Penjualan;
 use Datatables;
 use DB;
 
-class HomeController extends Controller
+class LaporanController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -46,12 +46,19 @@ class HomeController extends Controller
             $filter     = "$filter AND DATE(P.TGL_PENJUALAN) <= '$tgl_sampai'";
         }
 
-        $sql = "SELECT P.ID_PENJUALAN, P.ID_OBAT, O.NAMA_OBAT, DATE_FORMAT(P.TGL_PENJUALAN, '%d %M %Y')AS TGL_PENJUALAN, P.QTY 
+        $sql = "SELECT P.ID_PENJUALAN, P.ID_OBAT, O.NAMA_OBAT, DATE_FORMAT(P.TGL_PENJUALAN, '%d %M %Y')AS TGL_PENJUALAN, P.QTY, U.USERNAME 
                     FROM PENJUALAN AS P 
                     JOIN OBAT AS O ON P.ID_OBAT = O.ID_OBAT
+                    JOIN USERS AS U ON P.ID_USER = U.ID_USER
+                    WHERE 1 $filter";
+        $sql_qty = "SELECT SUM(P.QTY) AS TOTAL_QTY
+                    FROM PENJUALAN AS P 
+                    JOIN OBAT AS O ON P.ID_OBAT = O.ID_OBAT
+                    JOIN USERS AS U ON P.ID_USER = U.ID_USER
                     WHERE 1 $filter";
         $query = DB::select($sql);
+        $query_sum = DB::select($sql_qty)[0]->TOTAL_QTY;
 
-        return Datatables::of($query)->toJson();
+        return Datatables::of($query)->with('totalQty',$query_sum)->make();
     }
 }
