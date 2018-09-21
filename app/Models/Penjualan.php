@@ -13,6 +13,7 @@ class Penjualan extends Model
    		'id_penjualan',
    		'id_obat',
    		'tgl_penjualan',
-   		'qty'
+   		'qty',
+   		'id_user'
    ];
 }

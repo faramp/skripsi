@@ -8,7 +8,7 @@
 
 @section('content')
     <div class="box box-primary">
-        <form role="form" method="post" action="{{url('/forecasting')}}" enctype="multipart/form-data"  class="form-horizontal">
+        <form role="form" method="post" action="{{url('/grafik')}}" enctype="multipart/form-data"  class="form-horizontal">
           <input type="hidden" name="_token" value="{{ csrf_token() }}">
           <div class="box-body">
           	<div class="form-group">                   

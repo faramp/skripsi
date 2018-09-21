@@ -18,54 +18,21 @@
       </button>
     </div>
   </div>
-  <div class="box-body">
-    <div id="curve_chart"></div>
+  <form role="form" method="post" action="{{url('/forecasting')}}" enctype="multipart/form-data"  class="form-horizontal">
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+  <div class="box-body" id="body">    
+    <div id="curve_chart" style="overflow-x: auto;"></div>
+    <div class="col-xs-6">
+      <label for="exampleInputFile">Periode Musiman</label>
+      <input type="text" class="form-control" name='musiman' id="musiman" required>
+      <input type="hidden" class="form-control" name='periode' id="periode" value="{{$periode}}">
+      <input type="hidden" class="form-control" name='obat' id="obat" value="{{$obat}}">
+    </div>    
+  </div>
+  <div class="box-footer">
+    <button type="submit" class="btn btn-primary">Next</button>
   </div>
   <!-- /.box-body-->
-</div>
-
-<div class="box">
-  <div class="box-header">
-    <h3 class="box-title">Exponential Smoothing</h3>
-  </div>
-  <!-- /.box-header -->
-  <div class="box-body no-padding">
-    <table class="table table-striped">
-      <tr>
-        <th style="width: 10px">#</th>
-        <th>Metode</th>
-        <th>Nilai Awal</th>
-        <th>Parameter</th>
-        <th style="width: 40px">MSE</th>
-      </tr>
-      <tr>
-        @foreach($single as $s)
-        <td>{!!$s!!}</td>
-        @endforeach
-      </tr>
-      <tr>
-        @foreach($double as $d)
-        <td>{!!$d!!}</td>
-        @endforeach
-      </tr>
-      <tr>
-        @foreach($holt as $h)
-        <td>{!!$h!!}</td>
-        @endforeach
-      </tr>
-      <tr>
-        @foreach($winter as $w)
-        <td>{!!$w!!}</td>
-        @endforeach
-      </tr>
-    </table>
-    <p>Hasil peramalan untuk {{$periode}} hari adalah: </p>
-    @for($p=1; $p<=$periode; $p++)
-    <p>Hari ke-{{$p}} kedepan yaitu {{$hasil_forecast[$p]}}</p>
-    @endfor
-    <p>MSE = {{$MSE}}</p>
-  </div>
-  <!-- /.box-body -->
 </div>
 @stop
 

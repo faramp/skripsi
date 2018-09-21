@@ -13,7 +13,6 @@ use Illuminate\Http\UploadedFile;
 use Excel;
 use Auth;
 use Session;
-use Illuminate\Support\Facades\Redirect;
 
 class UploadController extends Controller
 {
@@ -43,12 +42,13 @@ class UploadController extends Controller
     public function upload(Request $request)
     {
         $nama = time() .'.'.$request->file('excel')->getClientOriginalExtension();
-        $file = $request->file('excel')->move('upload',$nama);
-        $file = public_path('upload/'.$nama);
+        $file = $request->file('excel')->move('fileupload/',$nama);
+        $file = public_path('fileupload/'.$nama);
         $penjualan = Excel::load($file)->all()->toArray();
 
         foreach ($penjualan as $p) {
             $cek = Penjualan::where('id_obat',$request->input('obat'))->where('tgl_penjualan',$p['tanggal'])->first(); 
+
             if(!empty($cek)){
                 Penjualan::where('id_obat',$request->input('obat'))
                         ->where('tgl_penjualan',$p['tanggal'])

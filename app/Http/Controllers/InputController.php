@@ -48,7 +48,7 @@ class InputController extends Controller
         else{
             Penjualan::create([
                 'id_obat'       => $request->input('obat'),
-                'tgl_penjualan' => NOW('GMT+7'),
+                'tgl_penjualan' => Carbon::now('GMT+7')->toDateString(),
                 'qty'           => $request->input('qty'),
                 'id_user'       => Auth::user()->id_user
             ]); 

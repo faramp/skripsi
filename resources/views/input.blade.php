@@ -23,7 +23,7 @@
       <input type="hidden" name="_token" value="{{ csrf_token() }}">
       <div class="box-body">
         <div class="col-xs-4">
-          <label>Select</label>              
+          <label>Obat</label>              
           <select class="form-control " name="obat" required>
           	<option value="">- Pilih Obat -</option>
           	@foreach($obat as $i)

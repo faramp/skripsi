@@ -7,6 +7,17 @@
 @stop
 
 @section('content')
+<div class="flash-message" style="margin-left: -16px;margin-right: -16px; margin-top: 13px;">
+  @foreach (['danger', 'warning', 'success', 'info'] as $msg)
+  @if(Session::has('alert-' . $msg))
+<div class="alert alert-{{ $msg }}">
+  <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+  <p class="" style="border-radius: 0">{{ Session::get('alert-' . $msg) }}</p>
+</div>
+  {!!Session::forget('alert-' . $msg)!!}
+  @endif
+  @endforeach
+</div>
     <div class="box box-primary">
       <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <div class="col-xs-4">
@@ -39,18 +50,18 @@
             <table class="table nowrap thead-inverse" id="dataLaporan" width="100%">
                 <thead>
                 <tr>
-                  <th><i class="left-menu-link-icon icmn-clipboard3"></i> Id</th>
-                  <th><i class="left-menu-link-icon icmn-clipboard3"></i> Tanggal</th>
-                  <th><i class="left-menu-link-icon icmn-copy"></i> Nama Obat</th>
-                  <th><i class="left-menu-link-icon icmn-codepen"></i> Qty</th>
-                  <th><i class="left-menu-link-icon icmn-codepen"></i> Pegawai</th>
+                  <th> No</th>
+                  <th> Tanggal</th>
+                  <th> Nama Obat</th>
+                  <th> Qty</th>
+                  <th> Action</th>
                 </tr>
                 </thead>
                 <tfoot>
                 <tr>
                   <th></th>
                   <th></th>                  
-                  <th><i class="left-menu-link-icon icmn-codepen"></i> Total Qty</th>
+                  <th> Total Qty</th>
                   <th></th>
                   <th></th>
                 </tr>
@@ -68,6 +79,7 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
 <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"></script>
 <script>
 
 var datatable;
@@ -93,12 +105,13 @@ var tglsampai = $("#tgl_sampai");
         responsive: true,
         ajax: 'datatable/0/0/0',
         columns: [
-          {data: 'ID_PENJUALAN', name: 'ID_PENJUALAN'},
+          {data: 'NOMOR', name: 'NOMOR'},
           {data: 'TGL_PENJUALAN', name: 'TGL_PENJUALAN'},
           {data: 'NAMA_OBAT', name: 'NAMA_OBAT'},
           {data: 'QTY', name: 'QTY'},
-          {data: 'USERNAME', name: 'USERNAME'}
-        ],'footerCallback': function( tfoot, data, start, end, display ) {
+          {data: 'ACTION', name: 'ACTION'},
+        ],
+        'footerCallback': function( tfoot, data, start, end, display ) {
           var response = this.api().ajax.json();
              if(response){
                 var $th = $(tfoot).find('th');
@@ -106,6 +119,7 @@ var tglsampai = $("#tgl_sampai");
              }
          }
       });  
+      
       $(document).on('click', '.filterLaporan', function() {
         var generateUrl = generate_url_filter();
         console.log('id_obat'+generate_url_filter().brand);

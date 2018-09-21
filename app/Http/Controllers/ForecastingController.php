@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use App\Models\Obat;
 use App\Models\Penjualan;
 
-class ForcastingController extends Controller
+class ForecastingController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -30,13 +30,27 @@ class ForcastingController extends Controller
         $data = [
             'obat' => Obat::all()
         ];
-        return view('forcasting',$data);
+        return view('forecasting',$data);
+    }
+
+    public function grafik(Request $request)
+    {
+        $search = Penjualan::where('id_obat',$request->input('obat'))->get();
+        $obat = $request->input('obat');
+        $periode = $request->input('periode');  
+        $data = [
+            'search' => $search,
+            'obat'   => $obat,
+            'periode'=> $periode
+        ];
+        return view('grafik',$data);
     }
 
     public function hitung(Request $request){
         $search = Penjualan::where('id_obat',$request->input('obat'))->get();
         $total = Penjualan::where('id_obat',$request->input('obat'))->count(); 
         $periode = $request->input('periode');      
+        $musiman = $request->input('musiman');
         $training = (int)($total * 0.8);
         $testing = $total - $training;
         $data_asli = array();
@@ -56,13 +70,17 @@ class ForcastingController extends Controller
         for($i=$training; $i<=$total-1; $i++){
             $data_testing[$i] = $search[$i]->qty;
         }
+
+        for($i=0; $i<=$total-8;$i++){
+            $data_stationer[$i] = $data[$i+7] - $data[$i]; 
+        }
     //Metode Single
         if($periode==1){
             $hasil = $this->stationer($data_asli);
             $single = [
                 "1.",
                 "Single",
-                $hasil[0],
+                number_format($hasil[0],3,",","."),
                 "Alpha = ".$hasil[1],
                 $hasil[2]
             ];
@@ -70,6 +88,8 @@ class ForcastingController extends Controller
         }
         else{
             $single = [
+                "1.",
+                "Single",
                 "-",
                 "-",
                 "-"
@@ -83,7 +103,7 @@ class ForcastingController extends Controller
         $double = [
             "2.",
             "Double",
-            "Nilai 1 = ".$testing_double[0]."<br>Nilai 2 = ".$testing_double[1],
+            "Nilai 1 = ".number_format($testing_double[0],3,",",".")."<br>Nilai 2 = ".number_format($testing_double[1],3,",","."),
             "Alpha = ".$testing_double[3],
             $testing_double[4]
         ];
@@ -95,7 +115,7 @@ class ForcastingController extends Controller
         $holt = [
             "3.",
             "Holt",
-            "Nilai 1 = $testing_holt[0]<br>Nilai 2 = $testing_holt[1]",
+            "Nilai 1 = ".number_format($testing_holt[0],3,",",".")."<br>Nilai 2 = ".number_format($testing_holt[1],3,",","."),
             "Alpha = $testing_holt[3]<br>Beta = $testing_holt[4]",
             $testing_holt[5]
         ];
@@ -107,28 +127,33 @@ class ForcastingController extends Controller
         $winter = [
             "4.",
             "Winter",
-            "Nilai 1 = ".$testing_winter[0]."<br>Nilai 2 = ".$testing_winter[1]."<br>Nilai 3 = ".$testing_winter[2],
+            "Nilai 1 = ".number_format($testing_winter[0],3,",",".")."<br>Nilai 2 = ".number_format($testing_winter[1],3,",",".")."<br>Nilai 3 = ".number_format($testing_winter[2],3,",","."),
             "Alpha = ".$testing_winter[4]."<br>Beta = ".$testing_winter[5]."<br>Miu = ".$testing_winter[6],
             $testing_winter[7]
         ];        
         $min_metode[3] = $testing_winter[7];
     //End Metode Winter
-        $pilih_metode = min($min_metode);
+        $pilih_metode = min(array_filter($min_metode));
+
         if($min_metode[0]==$pilih_metode){
             $single_forecast = $this->singleForecast($data_asli, $hasil[0], $hasil[1]);
             $hasil_forecast = $single_forecast[3];
+            $MSE = $single_forecast[2];
         }
         elseif ($min_metode[1]==$pilih_metode) {
             $double_forecast = $this->doubleForecast($data_asli, $testing_double[0], $testing_double[1], $testing_double[2], $testing_double[3]);
             $hasil_forecast = $double_forecast[5];
+            $MSE = $double_forecast[4];
         }
         elseif ($min_metode[2]==$pilih_metode) {
             $holt_forecast = $this->holtForecast($data_asli, $testing_holt[0], $testing_holt[1], $testing_holt[2], $testing_holt[3], $testing_holt[4]);
             $hasil_forecast = $holt_forecast[6];
+            $MSE = $holt_forecast[5];
         }
         elseif ($min_metode[3]==$pilih_metode) {
             $winter_forecast = $this->winterForecast($data_asli, $testing_winter[0], $testing_winter[1], $testing_winter[2], $testing_winter[3], $testing_winter[4], $testing_winter[5], $testing_winter[6]);
             $hasil_forecast = $winter_forecast[8];
+            $MSE = $winter_forecast[7];
         }
 
         $data = [
@@ -138,7 +163,8 @@ class ForcastingController extends Controller
             'holt'           => $holt,
             'winter'         => $winter,
             'periode'        => $periode,
-            'hasil_forecast' => $hasil_forecast
+            'hasil_forecast' => $hasil_forecast,
+            'MSE'            => $MSE
         ];
         // dd($data);
         return view('output', $data);       
@@ -342,6 +368,7 @@ class ForcastingController extends Controller
                         $sum = $sum + $eSquare[$i];               
                     }
                     $MSE = $sum / ($total-$periode);
+                    // $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
                     if($a==1 && $b==1){
                         $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
                     }
@@ -350,15 +377,15 @@ class ForcastingController extends Controller
                     }    
                 }  
             }
+            // $arraymse = array_column($arrayHasil,5);
+            // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
+            // dd($arrayHasil);
             $arrayHasilKombinasi[$l] = $arrayHasil[0];
         }
         $arraymse = array_column($arrayHasilKombinasi,5);
         array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasilKombinasi);
-        dd($arrayHasilKombinasi);
-        // $arraymse = array_column($arrayHasil,5);
-        // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
-        // dd($arrayHasil);        
-        return[$arrayHasil[0][0], $arrayHasil[0][1], $arrayHasil[0][2], $arrayHasil[0][3], $arrayHasil[0][4], $arrayHasil[0][5]]; 
+        // dd($arrayHasilKombinasi);
+        return[$arrayHasilKombinasi[0][0], $arrayHasilKombinasi[0][1], $arrayHasilKombinasi[0][2], $arrayHasilKombinasi[0][3], $arrayHasilKombinasi[0][4], $arrayHasilKombinasi[0][5]]; 
     }
 
     public function winterTraining($data_training, $periode){
@@ -463,11 +490,10 @@ class ForcastingController extends Controller
             }
             $arrayHasilKombinasi[$l] = $arrayHasil[0];
         }
-        dd($arrayHasilKombinasi); 
-        // $arraymse = array_column($arrayHasil,7);
-        // array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
-        // dd($arrayHasil);  
-        return[$arrayHasil[0][0], $arrayHasil[0][1], $arrayHasil[0][2], $arrayHasil[0][3], $arrayHasil[0][4], $arrayHasil[0][5],$arrayHasil[0][6],$arrayHasil[0][7]];
+        $arraymse = array_column($arrayHasilKombinasi,7);
+        array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasilKombinasi);
+        // dd($arrayHasilKombinasi); 
+        return[$arrayHasilKombinasi[0][0], $arrayHasilKombinasi[0][1], $arrayHasilKombinasi[0][2], $arrayHasilKombinasi[0][3], $arrayHasilKombinasi[0][4], $arrayHasilKombinasi[0][5],$arrayHasilKombinasi[0][6],$arrayHasilKombinasi[0][7]];
     }
 //END TRAINING
 //TESTING
@@ -532,7 +558,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE];
     }
@@ -566,7 +592,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." Beta = ".$beta." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
     }
@@ -613,7 +639,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
         return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
     }
@@ -661,7 +687,7 @@ class ForcastingController extends Controller
                 $nilai_asli[$i] = (($yt[$i]-((1 - $alpha) * $yt[$i-1]))/$alpha)+$data_asli[$i-1]; 
             }
         }
-        dd($nilai_asli);
+        // dd($nilai_asli);
         $forecast[1] = $nilai_asli[$total+1];
         $count = count(array_filter($eSquare));
         $MSE = $sum / $count;
@@ -680,9 +706,9 @@ class ForcastingController extends Controller
         $eSquare = array();
         $forecast = array();
         $sum = 0;
+        $j=1;
         $batas = $periode+$total-1;
-        for($i=0; $i<=$batas;$i++){
-            $j=1;
+        for($i=0; $i<=$batas;$i++){            
             if($i<=$total-1){
                 if($i==0){
                     $a1[$i] = ($alpha * $data[$i]) + ((1 - $alpha) * $nilai_awal1);
@@ -711,7 +737,7 @@ class ForcastingController extends Controller
 
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $MSE, $forecast];
     }
@@ -725,9 +751,9 @@ class ForcastingController extends Controller
         $eSquare = array();
         $forecast = array();
         $sum = 0;
+        $j=1;
         $batas = $periode+$total-1;
-        for($i=0;$i<=$batas;$i++){ 
-            $j=1; 
+        for($i=0;$i<=$batas;$i++){              
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -753,7 +779,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("Nilai Awal 1 = ".$nilai_awal1." Nilai Awal 2 = ".$nilai_awal2." Periode = ".$periode." Alpha = ".$alpha." Beta = ".$beta." MSE = ".$MSE);
         return[$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE, $forecast];
     }
@@ -768,9 +794,9 @@ class ForcastingController extends Controller
         $eSquare = array();
         $forecast = array();
         $sum = 0;
+        $j=1;
         $batas = $periode+$total-1;
-        for($i=0;$i<=$batas;$i++){
-            $j=1;
+        for($i=0;$i<=$batas;$i++){            
             if($i<=$total-1){
                 if($i==0){
                     $at[$i] = $nilai_awal1;
@@ -808,7 +834,7 @@ class ForcastingController extends Controller
             }
             $sum = $sum + $eSquare[$i];
         }
-        $MSE = $sum / $total-$periode;
+        $MSE = $sum / ($total-$periode);
         // dd("nilai 1 = ".$nilai_awal1." nilai 2 = ".$nilai_awal2." nilai 3 = ".$nilai_awal3." periode = ".$periode." alpha = ".$alpha." beta = ".$beta." mu = ".$mu." MSE = ".$MSE);
         return [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE, $forecast];
     }
