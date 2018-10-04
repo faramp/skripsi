@@ -18,60 +18,59 @@
   @endif
   @endforeach
 </div>
-    <div class="box box-primary">
-      <input type="hidden" name="_token" value="{{ csrf_token() }}">
-        <div class="col-xs-4">
-            <label> Obat </label>
-            <select class="form-control" name="obat" id="obat">
-              <option value="0">- Pilih Obat -</option>
-              @foreach ($obat as $data)
-              <option value = "{{ $data->id_obat }}" > {{ $data->nama_obat }} </option>
-              @endforeach
-            </select>
-        </div>
-        <div class="col-xs-4">
-          <label> Tanggal Dari </label>
-          <input type="text"class="form-control pull-right datepicker" id="tgl_dari" placeholder="From">
-        </div>
-        <div class="col-xs-4">
-          <label> Tanggal Sampai </label>
-          <input type="text" class="form-control pull-right datepicker" id="tgl_sampai" placeholder="To">
-        </div>
-        <div class="row">
-          <center>
-            <button class="btn btn-primary ladda-button margin-inline filterLaporan" id="filterLaporan" data-style="expand-left"><span class="ladda-label"><i class="icmn-filter"></i> Filter</span></button>
-          </center>
-        </div>
-          
-        {{-- END FILTER --}}
-      <hr>
-      <div class="row">
-          <div class="col-lg-12">
-            <table class="table nowrap thead-inverse" id="dataLaporan" width="100%">
-                <thead>
-                <tr>
-                  <th> No</th>
-                  <th> Tanggal</th>
-                  <th> Nama Obat</th>
-                  <th> Qty</th>
-                  <th> Action</th>
-                </tr>
-                </thead>
-                <tfoot>
-                <tr>
-                  <th></th>
-                  <th></th>                  
-                  <th> Total Qty</th>
-                  <th></th>
-                  <th></th>
-                </tr>
-                </tfoot>
-                <tbody>
-                </tbody>
-            </table>
-          </div>
+  <div class="box box-primary">
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <div class="col-xs-4">
+        <label> Obat </label>
+        <select class="form-control" name="obat" id="obat">
+          <option value="0">- Pilih Obat -</option>
+          @foreach ($obat as $data)
+          <option value = "{{ $data->id_obat }}" > {{ $data->nama_obat }} </option>
+          @endforeach
+        </select>
+    </div>
+    <div class="col-xs-4">
+      <label> Tanggal Dari </label>
+      <input type="text"class="form-control pull-right datepicker" id="tgl_dari" placeholder="From">
+    </div>
+    <div class="col-xs-4">
+      <label> Tanggal Sampai </label>
+      <input type="text" class="form-control pull-right datepicker" id="tgl_sampai" placeholder="To">
+    </div>
+    <div class="row">
+      <center>
+        <button class="btn btn-primary ladda-button margin-inline filterLaporan" id="filterLaporan" data-style="expand-left"><span class="ladda-label"><i class="icmn-filter"></i> Filter</span></button>
+      </center>
+    </div>
+        
+    <hr>
+    <div class="row">
+      <div class="col-lg-12">
+        <table class="table nowrap thead-inverse" id="dataLaporan" width="100%">
+            <thead>
+            <tr>
+              <th> No</th>
+              <th> Tanggal</th>
+              <th> Nama Obat</th>
+              <th> Qty</th>
+              <th width="20%"> Action</th>
+            </tr>
+            </thead>
+            <tfoot>
+            <tr>
+              <th></th>
+              <th></th>                  
+              <th> Total Qty</th>
+              <th></th>
+              <th></th>
+            </tr>
+            </tfoot>
+            <tbody>
+            </tbody>
+        </table>
       </div>
     </div>
+  </div>
 @stop
 @section('js')
 <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet">

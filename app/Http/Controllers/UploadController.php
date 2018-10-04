@@ -47,22 +47,24 @@ class UploadController extends Controller
         $penjualan = Excel::load($file)->all()->toArray();
 
         foreach ($penjualan as $p) {
-            $cek = Penjualan::where('id_obat',$request->input('obat'))->where('tgl_penjualan',$p['tanggal'])->first(); 
+            if($p['tanggal']!=NULL){
+                $cek = Penjualan::where('id_obat',$request->input('obat'))->where('tgl_penjualan',$p['tanggal'])->first(); 
 
-            if(!empty($cek)){
-                Penjualan::where('id_obat',$request->input('obat'))
-                        ->where('tgl_penjualan',$p['tanggal'])
-                        ->update(['qty' => $p['total']],
-                                ['id_user' => Auth::user()->id_user]);
-            }
-            else{
-                Penjualan::create([
-                    'id_obat'       => $request->input('obat'),
-                    'tgl_penjualan' => $p['tanggal'],
-                    'qty'           => $p['total'],
-                    'id_user'       => Auth::user()->id_user
-                ]);
-            }    
+                if(!empty($cek)){
+                    Penjualan::where('id_obat',$request->input('obat'))
+                            ->where('tgl_penjualan',$p['tanggal'])
+                            ->update(['qty' => $p['total']],
+                                    ['id_user' => 1]);
+                }
+                else{
+                    Penjualan::create([
+                        'id_obat'       => $request->input('obat'),
+                        'tgl_penjualan' => $p['tanggal'],
+                        'qty'           => $p['total'],
+                        'id_user'       => 1
+                    ]);
+                }   
+            } 
         }
         Session::put('alert-success', 'File Berhasil di Upload');
         return Redirect::back();

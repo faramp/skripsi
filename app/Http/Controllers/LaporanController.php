@@ -35,7 +35,7 @@ class LaporanController extends Controller
     public function datatableLaporan(Request $request, $id_obat, $tgl_dari, $tgl_sampai){
         $column = array(
             0 => 'P.ID_PENJUALAN',
-            1 => 'TGL_PENJUALAN',
+            1 => 'DATE(TGL_PENJUALAN)',
             2 => 'O.NAMA_OBAT',
             3 => 'P.QTY'
         );

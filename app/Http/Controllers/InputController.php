@@ -43,14 +43,14 @@ class InputController extends Controller
             Penjualan::where('id_obat',$request->input('obat'))
                         -> where('tgl_penjualan',Carbon::now('GMT+7')->toDateString())
                         -> update(['qty' => $qty],
-                                  ['id_user' => Auth::user()->id_user]);
+                                  ['id_user' => 1]);
         }
         else{
             Penjualan::create([
                 'id_obat'       => $request->input('obat'),
                 'tgl_penjualan' => Carbon::now('GMT+7')->toDateString(),
                 'qty'           => $request->input('qty'),
-                'id_user'       => Auth::user()->id_user
+                'id_user'       => 1
             ]); 
         }
         Session::put('alert-success', 'Data Berhasil di Input');
