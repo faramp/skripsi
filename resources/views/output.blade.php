@@ -89,9 +89,9 @@
                     @if(!empty($kombinasiSingle))
                     @foreach($kombinasiSingle as $s)
                     <tr>
-                      <td>{{$s[0]}}</td>
-                      <td>{{$s[1]}}</td>
-                      <td>{{$s[2]}}</td>
+                      <td>{{number_format($s[0],3,",",".")}}</td>
+                      <td>{{number_format($s[1],2,",",".")}}</td>
+                      <td>{{number_format($s[2],6,",",".")}}</td>
                     </tr>
                     @endforeach
                     @endif
@@ -133,10 +133,10 @@
                   <tbody>
                     @foreach($kombinasiDouble as $d)
                     <tr>
-                      <td>{{$d[0]}}</td>
-                      <td>{{$d[1]}}</td>
-                      <td>{{$d[2]}}</td>
-                      <td>{{$d[3]}}</td>
+                      <td>{{number_format($d[0],3,",",".")}}</td>
+                      <td>{{number_format($d[1],3,",",".")}}</td>
+                      <td>{{number_format($d[3],2,",",".")}}</td>
+                      <td>{{number_format($d[4],6,",",".")}}</td>
                     </tr>
                     @endforeach
                   </tbody>
@@ -178,11 +178,11 @@
                   <tbody>
                     @foreach($kombinasiHolt as $h)
                     <tr>
-                      <td>{{$h[0]}}</td>
-                      <td>{{$h[1]}}</td>
-                      <td>{{$h[2]}}</td>
-                      <td>{{$h[3]}}</td>
-                      <td>{{$h[4]}}</td>
+                      <td>{{number_format($h[0],3,",",".")}}</td>
+                      <td>{{number_format($h[1],3,",",".")}}</td>
+                      <td>{{number_format($h[3],2,",",".")}}</td>
+                      <td>{{number_format($h[4],2,",",".")}}</td>
+                      <td>{{number_format($h[5],6,",",".")}}</td>
                     </tr>
                     @endforeach
                   </tbody>
@@ -226,13 +226,13 @@
                   <tbody>
                     @foreach($kombinasiWinter as $w)
                     <tr>
-                      <td>{{$w[0]}}</td>
-                      <td>{{$w[1]}}</td>
-                      <td>{{$w[2]}}</td>
-                      <td>{{$w[3]}}</td>
-                      <td>{{$w[4]}}</td>
-                      <td>{{$w[5]}}</td>
-                      <td>{{$w[6]}}</td>
+                      <td>{{number_format($w[0],3,",",".")}}</td>
+                      <td>{{number_format($w[1],3,",",".")}}</td>
+                      <td>{{number_format($w[2],3,",",".")}}</td>
+                      <td>{{number_format($w[4],2,",",".")}}</td>
+                      <td>{{number_format($w[5],2,",",".")}}</td>
+                      <td>{{number_format($w[6],2,",",".")}}</td>
+                      <td>{{number_format($w[7],6,",",".")}}</td>
                     </tr>
                     @endforeach
                   </tbody>
@@ -270,7 +270,7 @@
         ]);
 
         var options = {
-          title: 'Data Asli',
+          title: 'Data Asli Obat {{$nama_obat}}',
           curveType: 'function',
           legend: { position: 'bottom' },
           pointSize: 5,
@@ -293,7 +293,7 @@
         ]);
 
         var options = {
-          title: 'Data Stasioner',
+          title: 'Data Stasioner {{$nama_obat}}',
           curveType: 'function',
           legend: { position: 'bottom' },
           pointSize: 5,

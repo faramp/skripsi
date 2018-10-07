@@ -39,7 +39,7 @@
         data.addColumn({type:'string', role:'annotation'});
         data.addColumn('number', 'Qty');
         @foreach($query as $s)
-        @if($s['index']%$potongan==0)
+        @if($s['index']%7==0)
         data.addRow(['{{$s['index']}}',' ',{{$s['qty']}}]);
         @else
         data.addRow(['{{$s['index']}}',null,{{$s['qty']}}]);
@@ -52,7 +52,7 @@
           legend: { position: 'bottom' },
           pointSize: 5,
           width:1100,
-          height:400,
+          height:350,
           annotations: {
             style: 'line'
           }

@@ -13,7 +13,7 @@
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
   <div class="box-body" id="body"> 
     <div class="col-xs-12">
-      <h3>Pilih Tanggal dan Potongan untuk Detail Grafik</h3>
+      <h3>Pilih Tanggal untuk Detail Grafik</h3>
     </div>  
     <br>  
     <div class="col-xs-6">
@@ -37,8 +37,6 @@
     </div>
     <br>
     <div class="col-xs-6">
-      <label for="exampleInputFile">Jarak Potongan</label>
-      <input type="number" class="form-control" name='potongan' id="potongan" required>
       <input type="hidden" class="form-control" name='periode' id="periode" value="{{$periode}}">
       <input type="hidden" class="form-control" name='obat' id="obat" value="{{$obat}}">
     </div>   
@@ -73,7 +71,7 @@
         @endforeach
          
         var options = {
-          title: 'Data Penjualan',
+          title: 'Data Penjualan {{$nama_obat}}',
           curveType: 'function',
           legend: { position: 'bottom' },
           pointSize: 5,

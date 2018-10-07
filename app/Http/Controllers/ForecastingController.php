@@ -38,9 +38,11 @@ class ForecastingController extends Controller
         $search = Penjualan::where('id_obat',$request->input('obat'))->get();
         $obat = $request->input('obat');
         $periode = $request->input('periode'); 
+        $nama       = Penjualan::join('obat','obat.id_obat','=','penjualan.id_obat')->where('penjualan.id_obat',$request->input('obat'))->first();
         // dd($search);
         $data = [
             'search' => $search,
+            'nama_obat' => $nama->nama_obat,
             'obat'   => $obat,
             'periode'=> $periode
         ];
@@ -52,9 +54,9 @@ class ForecastingController extends Controller
         $tgl_dari = date_format(date_create($request->input('tgl_dari')),"Y-m-d");
         $tgl_sampai = date_format(date_create($request->input('tgl_sampai')),"Y-m-d");
         $search = Penjualan::where('id_obat',$request->input('obat'))->whereBetween('tgl_penjualan',[$tgl_dari,$tgl_sampai])->get();
+        $nama       = Penjualan::join('obat','obat.id_obat','=','penjualan.id_obat')->where('penjualan.id_obat',$request->input('obat'))->first();
         $obat = $request->input('obat');
         $periode = $request->input('periode'); 
-        // $potongan = $request->input('potongan');
         $no = 0;
         $query = array();
 
@@ -68,9 +70,9 @@ class ForecastingController extends Controller
 
         $data = [
             'query'     => $query,
+            'nama_obat' => $nama->nama_obat,
             'obat'      => $obat,
             'periode'   => $periode,
-            // 'potongan'  => $potongan,
             'tgl_dari'  => $request->input('tgl_dari'),
             'tgl_sampai'=> $request->input('tgl_sampai')
         ];
@@ -80,6 +82,7 @@ class ForecastingController extends Controller
     public function hitung(Request $request){
         $search     = Penjualan::where('id_obat',$request->input('obat'))->get();
         $total      = Penjualan::where('id_obat',$request->input('obat'))->count(); 
+        $nama       = Penjualan::join('obat','obat.id_obat','=','penjualan.id_obat')->where('penjualan.id_obat',$request->input('obat'))->first();
         $periode    = $request->input('periode');      
         $musiman    = $request->input('musiman');
         $training   = (int)($total * 0.8);
@@ -215,6 +218,7 @@ class ForecastingController extends Controller
         $data = [
             'search'         => $search,
             'stasioner'      => $data_stationer,
+            'nama_obat'      => $nama->nama_obat,
             'single'         => $single,
             'double'         => $double,
             'holt'           => $holt,
@@ -269,6 +273,7 @@ class ForecastingController extends Controller
         }
         $arraymse = array_column($arrayHasil,2);
         array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
+        dd($arrayHasil);
         $minKombinasi = array();
         for($i=0; $i<=9; $i++) {
             $minKombinasi[$i] = $arrayHasil[$i];
@@ -407,29 +412,20 @@ class ForecastingController extends Controller
                         $sum = $sum + $eSquare[$i];               
                     }
                     $MSE = $sum / ($total-$periode);
-                    if($periode==1){
-                        $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
-                    }
-                    else{
-                        if($a==1 && $b==1){
-                            $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
-                        }
-                        elseif($MSE<$arrayHasil[0][5]){
-                            $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE];
-                        }
-                    }                        
+                    $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $periode, $alpha, $beta, $MSE]; 
                 }  
             }
-            if($periode==1){
-                $selectMSE = array_column($arrayHasil,5);
-                array_multisort($selectMSE, SORT_ASC,SORT_NUMERIC, $arrayHasil);
+            $selectMSE = array_column($arrayHasil,5);
+            array_multisort($selectMSE, SORT_ASC,SORT_NUMERIC, $arrayHasil);        
+            if($periode>1){  
+                $arrayHasilKombinasi[$l] = $arrayHasil[0];
+            }
+            else{
                 for($i=0;$i<=4;$i++){
                     $arrayHasilKombinasi[$i] = $arrayHasil[$i];
                 }
             }
-            else{
-                $arrayHasilKombinasi[$l] = $arrayHasil[0];
-            }
+            unset($arrayHasil);
         }
         $arraymse = array_column($arrayHasilKombinasi,5);
         array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasilKombinasi);
@@ -537,30 +533,22 @@ class ForecastingController extends Controller
                             $sum = $sum + $eSquare[$i];
                         }
                         $MSE = $sum / ($total-$periode);
-                        if($periode==1){
-                            $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
-                        }
-                        else{
-                            if($a==1 && $b==1 && $m==1){
-                                $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
-                            }
-                            elseif($MSE<$arrayHasil[0][7]){
-                                $arrayHasil[0] = [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];
-                            }
-                        }                                                
+
+                        $arrayHasil[] = [$nilai_awal1, $nilai_awal2, $nilai_awal3, $periode, $alpha, $beta, $mu, $MSE];                                               
                     }
                 }
+            }    
+            $selectMSE = array_column($arrayHasil,7);
+            array_multisort($selectMSE, SORT_ASC,SORT_NUMERIC, $arrayHasil);        
+            if($periode>1){  
+                $arrayHasilKombinasi[$l] = $arrayHasil[0];
             }
-            if($periode==1){
-                $selectMSE = array_column($arrayHasil,7);
-                array_multisort($selectMSE, SORT_ASC,SORT_NUMERIC, $arrayHasil);
+            else{
                 for($i=0;$i<=4;$i++){
                     $arrayHasilKombinasi[$i] = $arrayHasil[$i];
                 }
             }
-            else{
-                $arrayHasilKombinasi[$l] = $arrayHasil[0];
-            }
+            unset($arrayHasil);
         }
         $arraymse = array_column($arrayHasilKombinasi,7);
         array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasilKombinasi);
