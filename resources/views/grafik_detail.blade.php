@@ -15,7 +15,11 @@
     
     <div class="col-xs-6">
       <label for="exampleInputFile">Periode Musiman</label>
-      <input type="number" class="form-control" name='musiman' id="musiman" required>
+      <select name="musiman" style="width: 100%;">
+        <option value="7">7 hari</option>
+        <option value="14">14 hari</option>
+        <option value="28">28 hari</option>
+      </select>
       <input type="hidden" class="form-control" name='periode' id="periode" value="{{$periode}}">
       <input type="hidden" class="form-control" name='obat' id="obat" value="{{$obat}}">
     </div>    
