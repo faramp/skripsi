@@ -16,9 +16,9 @@
     <div class="col-xs-6">
       <label for="exampleInputFile">Periode Musiman</label>
       <select name="musiman" style="width: 100%;">
-        <option value="7">7 hari</option>
-        <option value="14">14 hari</option>
-        <option value="28">28 hari</option>
+        <option value="7">7</option>
+        <option value="14">14</option>
+        <option value="28">28</option>
       </select>
       <input type="hidden" class="form-control" name='periode' id="periode" value="{{$periode}}">
       <input type="hidden" class="form-control" name='obat' id="obat" value="{{$obat}}">

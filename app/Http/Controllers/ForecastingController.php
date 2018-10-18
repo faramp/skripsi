@@ -273,7 +273,7 @@ class ForecastingController extends Controller
         }
         $arraymse = array_column($arrayHasil,2);
         array_multisort($arraymse, SORT_ASC,SORT_NUMERIC, $arrayHasil);
-        dd($arrayHasil);
+        // dd($arrayHasil);
         $minKombinasi = array();
         for($i=0; $i<=9; $i++) {
             $minKombinasi[$i] = $arrayHasil[$i];
